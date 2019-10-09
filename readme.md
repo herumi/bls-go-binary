@@ -17,7 +17,6 @@ make src/base64.ll
 make BIT=32 src/base32.ll
 cd ../bls
 make minimized_static MIN_WITH_XBYAK=1
-cp lib/lib384_256.a ../bls-go-binary/src/lib/lib384_256_<os>.a
 ```
 
 * Android
@@ -25,3 +24,10 @@ cp lib/lib384_256.a ../bls-go-binary/src/lib/lib384_256_<os>.a
 cd android
 ndk-build
 ```
+
+* iOS
+```
+make
+```
+
+Copy each static library `libbls384_256.a` to `src/bls/lib/<os>/<arch>/`.
