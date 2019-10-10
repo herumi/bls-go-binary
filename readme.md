@@ -6,7 +6,8 @@ go get github.com/herumi/bls-go-binary/
 go run sample.go
 ```
 
-# How to build
+# How to build the static binary
+The following steps are not necessary if you use compiled binary in this repository.
 
 * Linux, Mac, Windows(mingw64)
 ```
