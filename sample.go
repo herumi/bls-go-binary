@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/herumi/bls-go-binary/src/bls"
+	"github.com/herumi/bls-go-binary/bls"
 )
 
 type SeqRead struct {

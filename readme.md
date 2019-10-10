@@ -2,7 +2,7 @@
 
 # How to run sample.go
 ```
-go get github.com/herumi/bls-go-binary/src
+go get github.com/herumi/bls-go-binary/
 go run sample.go
 ```
 
