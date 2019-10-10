@@ -1,11 +1,7 @@
-/*
-	cd bls
-	make minimised_static
-*/
 package main
 import (
 	"fmt"
-	"bls"
+	"github.com/herumi/bls-go-binary/bls"
 	"crypto/rand"
 )
 
