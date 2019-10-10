@@ -2,7 +2,8 @@
 
 # How to run sample.go
 ```
-env GOPATH=`pwd` go run sample.go
+go get github.com/herumi/bls-go-binary/
+go run sample.go
 ```
 
 # How to build

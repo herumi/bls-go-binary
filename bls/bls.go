@@ -3,6 +3,7 @@ package bls
 /*
 #cgo linux,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/linux/amd64 -lstdc++
 #cgo darwin,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/darwin/amd64 -lstdc++
+#cgo darwin,arm64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/darwin/arm64
 #cgo windows,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/windows/amd64 -lstdc++
 #cgo android,arm64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/android/arm64-v8a
 #cgo android,arm LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/android/armeabi-v7a
