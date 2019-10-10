@@ -1,13 +1,14 @@
 package bls
 
 /*
-#cgo linux,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/linux/amd64 -lstdc++
-#cgo darwin,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/darwin/amd64 -lstdc++
-#cgo darwin,arm64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/darwin/arm64
-#cgo windows,amd64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/windows/amd64 -lstdc++
-#cgo android,arm64 LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/android/arm64-v8a
-#cgo android,arm LDFLAGS:-lbls384_256 -L${SRCDIR}/lib/android/armeabi-v7a
 #cgo CFLAGS:-I./include
+#cgo LDFLAGS:-lbls384_256 -lstdc++ -lm
+#cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
+#cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
+#cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
+#cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
+#cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/android/arm64-v8a
+#cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
 typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
 int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 #include <mcl/bn_c384_256.h>
