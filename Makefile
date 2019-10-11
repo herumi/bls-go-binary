@@ -34,5 +34,8 @@ ios: ../mcl/src/base64.ll
 	ar cru $(IOS_OUTDIR)/$(IOS_LIB).a $(IOS_OBJS)
 	ranlib $(IOS_OUTDIR)/$(IOS_LIB).a
 
+update:
+	patch -o - -p0 $(BLS_DIR)/ffi/go/bls/mcl.go <patch/mcl.patch > bls/mcl.go
+	patch -o - -p0 $(BLS_DIR)/ffi/go/bls/bls.go <patch/bls.patch > bls/bls.go
 
 .PHONY: ios
