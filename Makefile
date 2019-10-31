@@ -12,12 +12,19 @@ CURVE_BIT?=384_256
 IOS_OBJS=$(IOS_OUTDIR)/fp.o $(IOS_OUTDIR)/base64.o $(IOS_OUTDIR)/bls_c$(CURVE_BIT).o
 IOS_LIB=libbls$(CURVE_BIT)
 
-GOMOBILE_ARCHS=armv7 arm64
+IOS_PHONE_ARCHS=armv7 arm64
+IOS_SIMULATORS=x86_64 i386
 
 all:
-	@for target in $(GOMOBILE_ARCHS); do \
+	@for target in $(IOS_PHONE_ARCHS); do \
 		$(MAKE) ios ARCH=$$target PLATFORM="iPhoneOS"; \
 	done
+	@for target in $(IOS_SIMULATORS); do \
+		$(MAKE) ios ARCH=$$target PLATFORM="iPhoneSimulator"; \
+	done
+	$(eval IOS_LIBS=$(foreach target,$(IOS_PHONE_ARCHS) $(IOS_SIMULATORS), "ios/$(target)/libbls$(CURVE_BIT).a"))
+	@echo $(IOS_LIBS)
+	lipo $(IOS_LIBS) -create -output ios/libbls$(CURVE_BIT).a
 
 ../mcl/src/base64.ll:
 	$(MAKE) -C ../mcl src/base64.ll

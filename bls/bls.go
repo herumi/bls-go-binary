@@ -1,7 +1,7 @@
 package bls
 
 /*
-#cgo CFLAGS:-I./include
+#cgo CFLAGS:-I${SRCDIR}/include
 #cgo LDFLAGS:-lbls384_256 -lstdc++ -lm
 #cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
 #cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
@@ -9,16 +9,19 @@ package bls
 #cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
 #cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/android/arm64-v8a
 #cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
+#cgo ios LDFLAGS:-L${SRCDIR}/lib/ios
 typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
 int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 #include <mcl/bn_c384_256.h>
 #include <bls/bls.h>
 */
 import "C"
-import "fmt"
-import "unsafe"
-import "io"
-import "encoding/hex"
+import (
+ "encoding/hex"
+ "fmt"
+ "io"
+ "unsafe"
+)
 
 func hex2byte(s string) ([]byte, error) {
 	if (len(s) & 1) == 1 {
@@ -182,6 +185,16 @@ func (sec *SecretKey) SetLittleEndian(buf []byte) error {
 	err := C.blsSecretKeySetLittleEndian(&sec.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSecretKeySetLittleEndian %x", err)
+	}
+	return nil
+}
+
+// SetLittleEndianMod --
+func (sec *SecretKey) SetLittleEndianMod(buf []byte) error {
+	// #nosec
+	err := C.blsSecretKeySetLittleEndianMod(&sec.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	if err != 0 {
+		return fmt.Errorf("err blsSecretKeySetLittleEndianMod %x", err)
 	}
 	return nil
 }
@@ -596,7 +609,7 @@ func (sig *Sign) VerifyAggregateHashes(pubVec []PublicKey, hash [][]byte) bool {
 	if n == 0 {
 		return false
 	}
-	hashByte := GetOpUnitSize() * 8
+	hashByte := len(hash[0])
 	h := make([]byte, n*hashByte)
 	for i := 0; i < n; i++ {
 		hn := len(hash[i])
