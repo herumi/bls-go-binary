@@ -10,6 +10,7 @@ package bls
 #cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
 #cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/android/arm64-v8a
 #cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
+#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/android/x86-64
 typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
 int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 #include <mcl/bn_c384_256.h>
