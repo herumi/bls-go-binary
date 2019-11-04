@@ -18,6 +18,7 @@ all:
 	$(MAKE) ios PLATFORM="iPhoneSimulator" ARCH=x86_64 BIT=64 UNIT=8
 	$(MAKE) ios PLATFORM="iPhoneSimulator" ARCH=i386 BIT=32 UNIT=4
 	@echo $(IOS_LIBS)
+	@mkdir -p bls/lib/ios
 	lipo $(IOS_LIBS) -create -output bls/lib/ios/$(IOS_LIB)
 
 ../mcl/src/base64.ll:
