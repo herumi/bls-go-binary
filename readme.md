@@ -23,7 +23,7 @@ make minimized_static MIN_WITH_XBYAK=1
 
 * Android
 ```
-cd android
+cd android/jni
 ndk-build
 ```
 
