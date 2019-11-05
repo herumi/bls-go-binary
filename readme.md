@@ -9,7 +9,8 @@ go run sample.go
 # How to build the static binary
 The following steps are not necessary if you use compiled binary in this repository.
 
-* Linux, Mac, Windows(mingw64)
+# make base32.ll and base64.ll
+
 ```
 mkdir work
 git clone https://github.com/herumi/mcl
@@ -17,14 +18,18 @@ git clone https://github.com/herumi/bls
 cd mcl
 make src/base64.ll
 make BIT=32 src/base32.ll
-cd ../bls
+```
+
+* Linux, Mac, Windows(mingw64)
+```
+cd work/bls
 make minimized_static MIN_WITH_XBYAK=1
 ```
 
 * Android
 ```
-cd android/jni
-ndk-build
+cd android/
+./build.sh
 ```
 
 * iOS

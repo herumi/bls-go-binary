@@ -6,7 +6,7 @@ package bls
 #cgo ios LDFLAGS:-L${SRCDIR}/lib/ios
 #cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/android/arm64-v8a
 #cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
-#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/android/x86-64
+#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/android/x86_64
 #cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
 #cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
 #cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
@@ -18,10 +18,10 @@ int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 */
 import "C"
 import (
- "encoding/hex"
- "fmt"
- "io"
- "unsafe"
+	"encoding/hex"
+	"fmt"
+	"io"
+	"unsafe"
 )
 
 func hex2byte(s string) ([]byte, error) {

@@ -3,10 +3,11 @@
 	make minimised_static
 */
 package bls
+
 import (
-	"testing"
-	"fmt"
 	"crypto/rand"
+	"fmt"
+	"testing"
 )
 
 type SeqRead struct {
@@ -41,7 +42,6 @@ func testReadRand() {
 	buf = sec.GetLittleEndian()
 	fmt.Printf("3. (cr.Read) buf=%x\n", buf)
 }
-
 
 func main() {
 	Init(BLS12_381)
