@@ -51,6 +51,26 @@ func GetOpUnitSize() int {
 	return int(C.mclBn_getOpUnitSize())
 }
 
+// GetFrByteSize -- the serialized size of Fr
+func GetFrByteSize() int {
+	return int(C.mclBn_getFrByteSize())
+}
+
+// GetFpByteSize -- the serialized size of Fp
+func GetFpByteSize() int {
+	return int(C.mclBn_getFpByteSize())
+}
+
+// GetG1ByteSize -- the serialized size of G1
+func GetG1ByteSize() int {
+	return GetFpByteSize()
+}
+
+// GetG2ByteSize -- the serialized size of G2
+func GetG2ByteSize() int {
+	return GetFpByteSize() * 2
+}
+
 // GetCurveOrder --
 // return the order of G1
 func GetCurveOrder() string {
@@ -75,16 +95,46 @@ func GetFieldOrder() string {
 	return string(buf[:n])
 }
 
+func bool2Cint(b bool) C.int {
+	if b {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+// VerifyOrderG1 -- verify order if SetString/Deserialize are called
+func VerifyOrderG1(doVerify bool) {
+	// #nosec
+	C.mclBn_verifyOrderG1(bool2Cint(doVerify))
+}
+
+// VerifyOrderG2 -- verify order if SetString/Deserialize are called
+func VerifyOrderG2(doVerify bool) {
+	// #nosec
+	C.mclBn_verifyOrderG2(bool2Cint(doVerify))
+}
+
 // SetETHserialization --
 func SetETHserialization(enable bool) {
-	var v C.int
-	if enable {
-		v = 1
-	} else {
-		v = 0
-	}
 	// #nosec
-	C.mclBn_setETHserialization(v)
+	C.mclBn_setETHserialization(bool2Cint(enable))
+}
+
+// SetOriginalG2cofactor -- true if BLS_ETH is defined
+func SetOriginalG2cofactor(enable bool) {
+	// #nosec
+	C.mclBn_setOriginalG2cofactor(bool2Cint(enable))
+}
+
+// SetMapToMode --
+func SetMapToMode(mode int) error {
+	// #nosec
+	err := C.mclBn_setMapToMode((C.int)(mode))
+	if err != 0 {
+		return fmt.Errorf("SetMapToMode mode=%d\n", mode)
+	}
+	return nil
 }
 
 // Fr --
@@ -560,6 +610,47 @@ func (x *G1) Deserialize(buf []byte) error {
 	return nil
 }
 
+const ZERO_HEADER = 1 << 6
+
+func isZeroFormat(buf []byte, n int) bool {
+	if len(buf) < n {
+		return false
+	}
+	if buf[0] != ZERO_HEADER {
+		return false
+	}
+	for i := 1; i < n; i++ {
+		if buf[i] != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// DeserializeUncompressed -- x.Deserialize() + y.Deserialize()
+func (x *G1) DeserializeUncompressed(buf []byte) error {
+	if isZeroFormat(buf, GetG1ByteSize()*2) {
+		x.Clear()
+		return nil
+	}
+	// #nosec
+	var n = C.mclBnFp_deserialize(x.X.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	if n == 0 {
+		return fmt.Errorf("err UncompressedDeserialize X %x", buf)
+	}
+	buf = buf[n:]
+	// #nosec
+	n = C.mclBnFp_deserialize(x.Y.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	if n == 0 {
+		return fmt.Errorf("err UncompressedDeserialize Y %x", buf)
+	}
+	x.Z.SetInt64(1)
+	if !x.IsValid() {
+		return fmt.Errorf("err invalid point")
+	}
+	return nil
+}
+
 // IsEqual --
 func (x *G1) IsEqual(rhs *G1) bool {
 	return C.mclBnG1_isEqual(x.getPointer(), rhs.getPointer()) == 1
@@ -573,6 +664,11 @@ func (x *G1) IsZero() bool {
 // IsValid --
 func (x *G1) IsValid() bool {
 	return C.mclBnG1_isValid(x.getPointer()) == 1
+}
+
+// IsValidOrder --
+func (x *G1) IsValidOrder() bool {
+	return C.mclBnG1_isValidOrder(x.getPointer()) == 1
 }
 
 // HashAndMapTo --
@@ -598,13 +694,34 @@ func (x *G1) GetString(base int) string {
 
 // Serialize --
 func (x *G1) Serialize() []byte {
-	buf := make([]byte, 2048)
+	buf := make([]byte, GetG1ByteSize())
 	// #nosec
 	n := C.mclBnG1_serialize(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), x.getPointer())
 	if n == 0 {
 		panic("err mclBnG1_serialize")
 	}
-	return buf[:n]
+	return buf
+}
+
+// SerializeUncompressed -- all zero array if x.IsZero()
+func (x *G1) SerializeUncompressed() []byte {
+	buf := make([]byte, GetG1ByteSize()*2)
+	if x.IsZero() {
+		buf[0] = ZERO_HEADER
+		return buf
+	}
+	var nx G1
+	G1Normalize(&nx, x)
+	// #nosec
+	var n = C.mclBnFp_serialize(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), nx.X.getPointer())
+	if n == 0 {
+		panic("err mclBnFp_serialize X")
+	}
+	n = C.mclBnFp_serialize(unsafe.Pointer(&buf[n]), C.size_t(len(buf))-n, nx.Y.getPointer())
+	if n == 0 {
+		panic("err mclBnFp_serialize Y")
+	}
+	return buf
 }
 
 // G1Normalize --
@@ -690,6 +807,31 @@ func (x *G2) Deserialize(buf []byte) error {
 	return nil
 }
 
+// DeserializeUncompressed -- x.Deserialize() + y.Deserialize()
+func (x *G2) DeserializeUncompressed(buf []byte) error {
+	if isZeroFormat(buf, GetG2ByteSize()*2) {
+		x.Clear()
+		return nil
+	}
+	// #nosec
+	var n = C.mclBnFp2_deserialize(x.X.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	if n == 0 {
+		return fmt.Errorf("err UncompressedDeserialize X %x", buf)
+	}
+	buf = buf[n:]
+	// #nosec
+	n = C.mclBnFp2_deserialize(x.Y.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	if n == 0 {
+		return fmt.Errorf("err UncompressedDeserialize Y %x", buf)
+	}
+	x.Z.D[0].SetInt64(1)
+	x.Z.D[1].Clear()
+	if !x.IsValid() {
+		return fmt.Errorf("err invalid point")
+	}
+	return nil
+}
+
 // IsEqual --
 func (x *G2) IsEqual(rhs *G2) bool {
 	return C.mclBnG2_isEqual(x.getPointer(), rhs.getPointer()) == 1
@@ -703,6 +845,11 @@ func (x *G2) IsZero() bool {
 // IsValid --
 func (x *G2) IsValid() bool {
 	return C.mclBnG2_isValid(x.getPointer()) == 1
+}
+
+// IsValidOrder --
+func (x *G2) IsValidOrder() bool {
+	return C.mclBnG2_isValidOrder(x.getPointer()) == 1
 }
 
 // HashAndMapTo --
@@ -735,6 +882,27 @@ func (x *G2) Serialize() []byte {
 		panic("err mclBnG2_serialize")
 	}
 	return buf[:n]
+}
+
+// SerializeUncompressed -- all zero array if x.IsZero()
+func (x *G2) SerializeUncompressed() []byte {
+	buf := make([]byte, GetG2ByteSize()*2)
+	if x.IsZero() {
+		buf[0] = ZERO_HEADER
+		return buf
+	}
+	var nx G2
+	G2Normalize(&nx, x)
+	// #nosec
+	var n = C.mclBnFp2_serialize(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), nx.X.getPointer())
+	if n == 0 {
+		panic("err mclBnFp2_serialize X")
+	}
+	n = C.mclBnFp2_serialize(unsafe.Pointer(&buf[n]), C.size_t(len(buf))-n, nx.Y.getPointer())
+	if n == 0 {
+		panic("err mclBnFp2_serialize Y")
+	}
+	return buf
 }
 
 // G2Normalize --
@@ -889,6 +1057,22 @@ func GTDiv(out *GT, x *GT, y *GT) {
 // GTPow --
 func GTPow(out *GT, x *GT, y *Fr) {
 	C.mclBnGT_pow(out.getPointer(), x.getPointer(), y.getPointer())
+}
+
+// MapToG1 --
+func MapToG1(out *G1, x *Fp) error {
+	if C.mclBnFp_mapToG1(out.getPointer(), x.getPointer()) != 0 {
+		return fmt.Errorf("err mclBnFp_mapToG1")
+	}
+	return nil
+}
+
+// MapToG2 --
+func MapToG2(out *G2, x *Fp2) error {
+	if C.mclBnFp2_mapToG2(out.getPointer(), x.getPointer()) != 0 {
+		return fmt.Errorf("err mclBnFp2_mapToG2")
+	}
+	return nil
 }
 
 // Pairing --
