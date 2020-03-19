@@ -7,6 +7,11 @@ OBJ_DIR=obj
 all: ../mcl/src/base64.ll
 ifeq ($(CPU),x86-64)
 	$(eval _ARCH=amd64)
+else ($(CPU),aarch64)
+	$(eval _ARCH=arm64)
+else
+	$(eval _ARCH=$(CPU))
+endif
 ifeq ($(OS),mingw64)
 	$(eval _OS=windows)
 endif
@@ -17,7 +22,6 @@ endif
 ifeq ($(OS),mac)
 	$(eval _OS=darwin)
 	$(eval MIN_CFLAGS=$(MIN_CFLAGS) -fPIC)
-endif
 endif
 	$(eval LIB_DIR=bls/lib/$(_OS)/$(_ARCH))
 	-mkdir -p $(LIB_DIR)

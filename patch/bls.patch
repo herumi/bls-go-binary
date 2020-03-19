@@ -1,6 +1,6 @@
 --- ../bls/ffi/go/bls/bls.go	2019-11-07 12:29:24.269966712 +0900
 +++ bls/bls.go	2019-11-07 12:19:49.546524587 +0900
-@@ -1,23 +1,19 @@
+@@ -1,23 +1,20 @@
  package bls
  
  /*
@@ -26,6 +26,7 @@
 +#cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
 +#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/android/x86_64
 +#cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
++#cgo linux,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
 +#cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
 +#cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
 +#cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
