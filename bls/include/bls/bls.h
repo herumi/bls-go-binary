@@ -92,10 +92,25 @@ typedef struct {
 	@note blsInit() is not thread safe
 */
 BLS_DLL_API int blsInit(int curve, int compiledTimeVar);
+
+/*
+	use new eth 2.0 spec
+	@return 0 if success
+	@remark
+	this functions and the spec may change until it is fixed
+	the size of message <= 32
+*/
+#define BLS_ETH_MODE_OLD 0
+#define BLS_ETH_MODE_DRAFT_05 1 // 2020/Jan/30
+#define BLS_ETH_MODE_DRAFT_06 2 // 2020/Mar/15
+#define BLS_ETH_MODE_LATEST 1
+BLS_DLL_API int blsSetETHmode(int mode);
+
 /*
 	set ETH serialization mode for BLS12-381
 	@param ETHserialization [in] 1:enable,  0:disable
 	@note ignore the flag if curve is not BLS12-381
+	@note set in blsInit if BLS_ETH is defined
 */
 BLS_DLL_API void blsSetETHserialization(int ETHserialization);
 
@@ -116,6 +131,19 @@ BLS_DLL_API void blsSign(blsSignature *sig, const blsSecretKey *sec, const void 
 
 // return 1 if valid
 BLS_DLL_API int blsVerify(const blsSignature *sig, const blsPublicKey *pub, const void *m, mclSize size);
+
+// aggSig = sum of sigVec[0..n]
+BLS_DLL_API void blsAggregateSignature(blsSignature *aggSig, const blsSignature *sigVec, mclSize n);
+
+// verify(sig, sum of pubVec[0..n], msg)
+BLS_DLL_API int blsFastAggregateVerify(const blsSignature *sig, const blsPublicKey *pubVec, mclSize n, const void *msg, mclSize msgSize);
+
+/*
+	all msg[i] has the same msgSize byte, so msgVec must have (msgSize * n) byte area
+	verify prod e(H(pubVec[i], msgToG2[i]) == e(P, sig)
+	@note CHECK that sig has the valid order, all msg are different each other before calling this
+*/
+BLS_DLL_API int blsAggregateVerifyNoCheck(const blsSignature *sig, const blsPublicKey *pubVec, const void *msgVec, mclSize msgSize, mclSize n);
 
 // return written byte size if success else 0
 BLS_DLL_API mclSize blsIdSerialize(void *buf, mclSize maxBufSize, const blsId *id);
@@ -188,6 +216,36 @@ BLS_DLL_API int blsVerifyHash(const blsSignature *sig, const blsPublicKey *pub, 
 	@note do not check duplication of hVec
 */
 BLS_DLL_API int blsVerifyAggregatedHashes(const blsSignature *aggSig, const blsPublicKey *pubVec, const void *hVec, size_t sizeofHash, mclSize n);
+
+///// from here only for BLS12-381 with BLS_ETH
+/*
+	sign hashWithDomain by sec
+	hashWithDomain[0:32] 32 bytes message
+	hashWithDomain[32:40] 8 bytes data
+	see https://github.com/ethereum/eth2.0-specs/blob/dev/specs/bls_signature.md#hash_to_g2
+	HashWithDomain apis support only for BLS_ETH=1 and BLS12_381
+	return 0 if success else -1
+*/
+BLS_DLL_API int blsSignHashWithDomain(blsSignature *sig, const blsSecretKey *sec, const unsigned char hashWithDomain[40]);
+// return 1 if valid
+BLS_DLL_API int blsVerifyHashWithDomain(const blsSignature *sig, const blsPublicKey *pub, const unsigned char hashWithDomain[40]);
+
+/*
+	Uncompressed version of Serialize/Deserialize
+	the buffer size is twice of Serialize/Deserialize
+*/
+BLS_DLL_API mclSize blsPublicKeySerializeUncompressed(void *buf, mclSize maxBufSize, const blsPublicKey *pub);
+BLS_DLL_API mclSize blsSignatureSerializeUncompressed(void *buf, mclSize maxBufSize, const blsSignature *sig);
+BLS_DLL_API mclSize blsPublicKeyDeserializeUncompressed(blsPublicKey *pub, const void *buf, mclSize bufSize);
+BLS_DLL_API mclSize blsSignatureDeserializeUncompressed(blsSignature *sig, const void *buf, mclSize bufSize);
+
+/*
+	pubVec is an array of size n
+	hashWithDomain is an array of size (40 * n)
+*/
+BLS_DLL_API int blsVerifyAggregatedHashWithDomain(const blsSignature *aggSig, const blsPublicKey *pubVec, const unsigned char hashWithDomain[][40], mclSize n);
+
+///// to here only for BLS12-381 with BLS_ETH
 
 // sub
 BLS_DLL_API void blsSecretKeySub(blsSecretKey *sec, const blsSecretKey *rhs);
