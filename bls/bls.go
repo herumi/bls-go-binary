@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"runtime"
 	"unsafe"
 )
 
@@ -695,6 +696,31 @@ func (sig *Sign) VerifyByte(pub *PublicKey, msg []byte) bool {
 // Aggregate --
 func (sig *Sign) Aggregate(sigVec []Sign) {
 	C.blsAggregateSignature(&sig.v, &sigVec[0].v, C.mclSize(len(sigVec)))
+}
+
+// AggregateMT (Multi thread aggregation using up to max threads) --
+func (sig *Sign) AggregateMT(sigChan chan *Sign, sigNum int) {
+	MTAdd := func(res *Sign, op *Sign, sigChan chan *Sign, workerChan chan int) {
+		res.Add(op)
+		sigChan <- res
+		<-workerChan
+	}
+	c := 0
+	maxThread := runtime.NumCPU() * 2
+	workerChan := make(chan int, maxThread)
+	for {
+		if len(workerChan) < maxThread && len(sigChan) > 1 {
+			workerChan <- 1
+			res := <-sigChan
+			op := <-sigChan
+			go MTAdd(res, op, sigChan, workerChan)
+			c++
+		}
+		if c >= sigNum-1 && len(workerChan) == 0 {
+			sig = <-sigChan
+			break
+		}
+	}
 }
 
 // FastAggregateVerify --
