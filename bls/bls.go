@@ -699,25 +699,23 @@ func (sig *Sign) Aggregate(sigVec []Sign) {
 }
 
 // AggregateMT (Multi thread aggregation using up to max threads) --
-func (sig *Sign) AggregateMT(sigChan chan *Sign, sigNum int) {
+func (sig *Sign) AggregateMT(sigChan chan *Sign) {
 	MTAdd := func(res *Sign, op *Sign, sigChan chan *Sign, workerChan chan int) {
-		res.Add(op)
+		C.blsSignatureAdd(&res.v, &op.v)
 		sigChan <- res
 		<-workerChan
 	}
-	c := 0
-	maxThread := runtime.NumCPU() * 2
+	c := len(sigChan)
+	maxThread := runtime.NumCPU() * 100
 	workerChan := make(chan int, maxThread)
 	for {
 		if len(workerChan) < maxThread && len(sigChan) > 1 {
 			workerChan <- 1
-			res := <-sigChan
-			op := <-sigChan
-			go MTAdd(res, op, sigChan, workerChan)
-			c++
+			go MTAdd((<-sigChan), (<-sigChan), sigChan, workerChan)
+			c--
 		}
-		if c >= sigNum-1 && len(workerChan) == 0 {
-			sig = <-sigChan
+		if c <= 1 && len(workerChan) == 0 {
+			sig.v = (<-sigChan).v
 			break
 		}
 	}
