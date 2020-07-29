@@ -10,17 +10,9 @@
 #include <mcl/bn.h>
 
 #ifdef BLS_ETH
-	#ifndef BLS_SWAP_G
-		#define BLS_SWAP_G
-	#endif
 	#define BLS_COMPILER_TIME_VAR_ADJ 200
-#endif
-#ifdef BLS_SWAP_G
-	#ifndef BLS_COMPILER_TIME_VAR_ADJ
-		#define BLS_COMPILER_TIME_VAR_ADJ 100
-	#endif
 	/*
-		error if BLS_SWAP_G is inconsistently used between library and exe
+		error if BLS_ETH is inconsistently defined between library and exe
 	*/
 	#undef MCLBN_COMPILED_TIME_VAR
 	#define MCLBN_COMPILED_TIME_VAR ((MCLBN_FR_UNIT_SIZE) * 10 + (MCLBN_FP_UNIT_SIZE) + BLS_COMPILER_TIME_VAR_ADJ)
@@ -66,7 +58,7 @@ typedef struct {
 } blsSecretKey;
 
 typedef struct {
-#ifdef BLS_SWAP_G
+#ifdef BLS_ETH
 	mclBnG1 v;
 #else
 	mclBnG2 v;
@@ -74,7 +66,7 @@ typedef struct {
 } blsPublicKey;
 
 typedef struct {
-#ifdef BLS_SWAP_G
+#ifdef BLS_ETH
 	mclBnG2 v;
 #else
 	mclBnG1 v;
@@ -103,7 +95,8 @@ BLS_DLL_API int blsInit(int curve, int compiledTimeVar);
 #define BLS_ETH_MODE_OLD 0
 #define BLS_ETH_MODE_DRAFT_05 1 // 2020/Jan/30
 #define BLS_ETH_MODE_DRAFT_06 2 // 2020/Mar/15
-#define BLS_ETH_MODE_LATEST 1
+#define BLS_ETH_MODE_DRAFT_07 3 // 2020/May/13
+#define BLS_ETH_MODE_LATEST 3
 BLS_DLL_API int blsSetETHmode(int mode);
 
 /*
@@ -163,17 +156,31 @@ BLS_DLL_API int blsSecretKeyIsEqual(const blsSecretKey *lhs, const blsSecretKey 
 BLS_DLL_API int blsPublicKeyIsEqual(const blsPublicKey *lhs, const blsPublicKey *rhs);
 BLS_DLL_API int blsSignatureIsEqual(const blsSignature *lhs, const blsSignature *rhs);
 
+// return 1 if zero else 0
+BLS_DLL_API int blsIdIsZero(const blsId *x);
+BLS_DLL_API int blsSecretKeyIsZero(const blsSecretKey *x);
+BLS_DLL_API int blsPublicKeyIsZero(const blsPublicKey *x);
+BLS_DLL_API int blsSignatureIsZero(const blsSignature *x);
+
 // return 0 if success
-BLS_DLL_API int blsSecretKeyShare(blsSecretKey *sec, const blsSecretKey* msk, mclSize k, const blsId *id);
+// make sec corresponding to id from {msk[0], ..., msk[k-1]}
+BLS_DLL_API int blsSecretKeyShare(blsSecretKey *sec, const blsSecretKey *msk, mclSize k, const blsId *id);
+// make pub corresponding to id from {mpk[0], ..., mpk[k-1]}
 BLS_DLL_API int blsPublicKeyShare(blsPublicKey *pub, const blsPublicKey *mpk, mclSize k, const blsId *id);
 
+// return 0 if success
+// recover sec from {(secVec[i], idVec[i]) for i = 0, ..., n-1}
 BLS_DLL_API int blsSecretKeyRecover(blsSecretKey *sec, const blsSecretKey *secVec, const blsId *idVec, mclSize n);
+// recover pub from {(pubVec[i], idVec[i]) for i = 0, ..., n-1}
 BLS_DLL_API int blsPublicKeyRecover(blsPublicKey *pub, const blsPublicKey *pubVec, const blsId *idVec, mclSize n);
+// recover sig from {(sigVec[i], idVec[i]) for i = 0, ..., n-1}
 BLS_DLL_API int blsSignatureRecover(blsSignature *sig, const blsSignature *sigVec, const blsId *idVec, mclSize n);
 
-// add
+// sec += rhs
 BLS_DLL_API void blsSecretKeyAdd(blsSecretKey *sec, const blsSecretKey *rhs);
+// pub += rhs
 BLS_DLL_API void blsPublicKeyAdd(blsPublicKey *pub, const blsPublicKey *rhs);
+// sig += rhs
 BLS_DLL_API void blsSignatureAdd(blsSignature *sig, const blsSignature *rhs);
 
 /*
@@ -217,19 +224,6 @@ BLS_DLL_API int blsVerifyHash(const blsSignature *sig, const blsPublicKey *pub, 
 */
 BLS_DLL_API int blsVerifyAggregatedHashes(const blsSignature *aggSig, const blsPublicKey *pubVec, const void *hVec, size_t sizeofHash, mclSize n);
 
-///// from here only for BLS12-381 with BLS_ETH
-/*
-	sign hashWithDomain by sec
-	hashWithDomain[0:32] 32 bytes message
-	hashWithDomain[32:40] 8 bytes data
-	see https://github.com/ethereum/eth2.0-specs/blob/dev/specs/bls_signature.md#hash_to_g2
-	HashWithDomain apis support only for BLS_ETH=1 and BLS12_381
-	return 0 if success else -1
-*/
-BLS_DLL_API int blsSignHashWithDomain(blsSignature *sig, const blsSecretKey *sec, const unsigned char hashWithDomain[40]);
-// return 1 if valid
-BLS_DLL_API int blsVerifyHashWithDomain(const blsSignature *sig, const blsPublicKey *pub, const unsigned char hashWithDomain[40]);
-
 /*
 	Uncompressed version of Serialize/Deserialize
 	the buffer size is twice of Serialize/Deserialize
@@ -238,12 +232,6 @@ BLS_DLL_API mclSize blsPublicKeySerializeUncompressed(void *buf, mclSize maxBufS
 BLS_DLL_API mclSize blsSignatureSerializeUncompressed(void *buf, mclSize maxBufSize, const blsSignature *sig);
 BLS_DLL_API mclSize blsPublicKeyDeserializeUncompressed(blsPublicKey *pub, const void *buf, mclSize bufSize);
 BLS_DLL_API mclSize blsSignatureDeserializeUncompressed(blsSignature *sig, const void *buf, mclSize bufSize);
-
-/*
-	pubVec is an array of size n
-	hashWithDomain is an array of size (40 * n)
-*/
-BLS_DLL_API int blsVerifyAggregatedHashWithDomain(const blsSignature *aggSig, const blsPublicKey *pubVec, const unsigned char hashWithDomain[][40], mclSize n);
 
 ///// to here only for BLS12-381 with BLS_ETH
 
@@ -345,6 +333,18 @@ BLS_DLL_API mclSize blsSignatureGetHexStr(char *buf, mclSize maxBufSize, const b
 */
 BLS_DLL_API void blsDHKeyExchange(blsPublicKey *out, const blsSecretKey *sec, const blsPublicKey *pub);
 
+/*
+	BLS Multi-Signatures With Public-Key Aggregation
+	https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html
+	H(pubVec)_i := SHA-256(pubVec[0], ..., pubVec[n-1], 4-byte little endian(i))
+	@note
+	1. this hash function will be modifed in the future
+	2. sigVec and pubVec are not const because they may be normalized (the value are not changed)
+*/
+// aggSig = sum sigVec[i] t_i where (t_1, ..., t_n) = H({pubVec})
+BLS_DLL_API void blsMultiAggregateSignature(blsSignature *aggSig, blsSignature *sigVec, blsPublicKey *pubVec, mclSize n);
+// aggPub = sum pubVec[i] t_i where (t_1, ..., t_n) = H({pubVec})
+BLS_DLL_API void blsMultiAggregatePublicKey(blsPublicKey *aggPub, blsPublicKey *pubVec, mclSize n);
 #endif // BLS_MINIMUM_API
 
 #ifdef __cplusplus

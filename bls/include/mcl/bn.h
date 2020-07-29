@@ -127,7 +127,7 @@ enum {
 };
 
 // return 0xABC which means A.BC
-MCLBN_DLL_API int mclBn_getVersion();
+MCLBN_DLL_API int mclBn_getVersion(void);
 /*
 	init library
 	@param curve [in] type of bn curve
@@ -201,46 +201,10 @@ MCLBN_DLL_API void mclBn_setETHserialization(int enable);
 MCLBN_DLL_API int mclBn_getETHserialization(void);
 
 /*
-	use original g2cofactor
-	@param enable [in] 1:enable,  0:disable(default)
-	use faster algorithm for multiplication of G2 with g2cofactor if enable
-	The constant is 0x204d0ec030004ec0600000002fffffffd times original g2cofacotr
-	@see MapTo::mulByCofactorBLS12
-*/
-MCLBN_DLL_API void mclBn_setOriginalG2cofactor(int enable);
-
-/*
-	set map-to-function to mode (defalt:MCL_MAP_TO_MODE_ORIGINAL)
-	https://github.com/ethereum/eth2.0-specs/blob/dev/specs/bls_signature.md#modular_squareroot
+	set map-to-function to mode (only support MCL_MAP_TO_MODE_HASH_TO_CURVE_07)
 	return 0 if success else -1
-	@note call mclBn_setOriginalG2cofactor(true) if MCL_MAP_TO_MODE_ETH2
 */
 MCLBN_DLL_API int mclBn_setMapToMode(int mode);
-
-/*
-	the next three functions are auxiliary of the new eth 2.0 spec
-	these always return 0 if MCL_BLS12_381 is set
-*/
-/*
-	set out to hash of (msg[msgSize], ctr, dst[dstSize])
-	return 0 if success
-	@note append zero byte to msg if necessary
-*/
-MCLBN_DLL_API int mclBn_ethMsgToFp2(mclBnFp2 *out, const void *msg, size_t msgSize, uint8_t ctr, const void *dst, size_t dstSize);
-
-/*
-	set out to hash of (t1, t2)
-	allow t2 is NULL
-	return 0 if success
-*/
-MCLBN_DLL_API int mclBn_ethFp2ToG2(mclBnG2 *out, const mclBnFp2 *t1, const mclBnFp2 *t2);
-
-/*
-	set out to hash of (msg[msgSize], dst[dstSize])
-	@note append zero byte to msg if necessary
-	return 0 if success
-*/
-MCLBN_DLL_API int mclBn_ethMsgToG2(mclBnG2 *out, const void *msg, size_t msgSize, const void *dst, size_t dstSize);
 
 ////////////////////////////////////////////////
 /*
@@ -317,9 +281,11 @@ MCLBN_DLL_API mclSize mclBnFp_getLittleEndian(void *buf, mclSize maxBufSize, con
 // set (buf mod r) to x
 // return 0 if bufSize <= (byte size of Fr * 2) else -1
 MCLBN_DLL_API int mclBnFr_setLittleEndianMod(mclBnFr *x, const void *buf, mclSize bufSize);
+MCLBN_DLL_API int mclBnFr_setBigEndianMod(mclBnFr *x, const void *buf, mclSize bufSize);
 // set (buf mod p) to x
 // return 0 if bufSize <= (byte size of Fp * 2) else -1
 MCLBN_DLL_API int mclBnFp_setLittleEndianMod(mclBnFp *x, const void *buf, mclSize bufSize);
+MCLBN_DLL_API int mclBnFp_setBigEndianMod(mclBnFp *x, const void *buf, mclSize bufSize);
 
 // return 1 if true and 0 otherwise
 MCLBN_DLL_API int mclBnFr_isValid(const mclBnFr *x);
