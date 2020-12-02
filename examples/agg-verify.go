@@ -16,10 +16,9 @@ func initQcoeff() {
 	bls.PrecomputeG2(g_Qcoeff, bls.CastFromPublicKey(&Q))
 }
 
-func toG(h []byte) bls.G1 {
+func toG(h []byte) (P bls.G1) {
 	var t bls.Fp
 	t.SetLittleEndian(h)
-	var P bls.G1
 	bls.MapToG1(&P, &t)
 	return P
 }
