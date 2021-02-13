@@ -1,6 +1,6 @@
---- ../bls/ffi/go/bls/bls.go	2020-07-21 16:09:02.591955158 +0900
-+++ bls/bls.go	2020-07-29 14:23:43.494568442 +0900
-@@ -1,17 +1,20 @@
+--- ../bls/ffi/go/bls/bls.go	2021-02-13 20:23:52.740853251 +0900
++++ bls/bls.go	2021-02-13 20:13:13.126133815 +0900
+@@ -1,17 +1,24 @@
  package bls
  
  /*
@@ -16,110 +16,30 @@
 +#cgo CFLAGS:-I${SRCDIR}/include
 +#cgo LDFLAGS:-lbls384_256 -lstdc++ -lm
 +#cgo ios LDFLAGS:-L${SRCDIR}/lib/ios
-+#cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/android/arm64-v8a
++#cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
 +#cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
-+#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/android/x86_64
++#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
 +#cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
 +#cgo linux,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
++#cgo linux,mipsle LDFLAGS:-L${SRCDIR}/lib/linux/mipsel
++#cgo linux,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
 +#cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
 +#cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
 +#cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
++#cgo openbsd,amd64 LDFLAGS:-L${SRCDIR}/lib/openbsd/amd64
++#cgo freebsd,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
  typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
  int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 +#include <mcl/bn_c384_256.h>
  #include <bls/bls.h>
  */
  import "C"
-@@ -265,20 +268,12 @@ func (sec *SecretKey) IsEqual(rhs *Secre
- 	return C.blsSecretKeyIsEqual(&sec.v, &rhs.v) == 1
- }
+@@ -169,7 +176,7 @@ type SecretKey struct {
  
--// IsZero --
--func (sec *SecretKey) IsZero() bool {
--	return C.blsSecretKeyIsZero(&sec.v) == 1
--}
--
- // SetByCSPRNG --
- func (sec *SecretKey) SetByCSPRNG() {
- 	err := C.blsSecretKeySetByCSPRNG(&sec.v)
- 	if err != 0 {
- 		panic("err blsSecretKeySetByCSPRNG")
- 	}
--	if sec.IsZero() {
--		panic("err blsSecretKeySetByCSPRNG zero")
--	}
- }
- 
- // Add --
-@@ -423,11 +418,6 @@ func (pub *PublicKey) IsEqual(rhs *Publi
- 	return C.blsPublicKeyIsEqual(&pub.v, &rhs.v) == 1
- }
- 
--// IsZero --
--func (pub *PublicKey) IsZero() bool {
--	return C.blsPublicKeyIsZero(&pub.v) == 1
--}
--
- // Add --
- func (pub *PublicKey) Add(rhs *PublicKey) {
- 	C.blsPublicKeyAdd(&pub.v, &rhs.v)
-@@ -526,11 +516,6 @@ func (sig *Sign) IsEqual(rhs *Sign) bool
- 	return C.blsSignatureIsEqual(&sig.v, &rhs.v) == 1
- }
- 
--// IsZero --
--func (sig *Sign) IsZero() bool {
--	return C.blsSignatureIsZero(&sig.v) == 1
--}
--
- // GetPublicKey --
- func (sec *SecretKey) GetPublicKey() (pub *PublicKey) {
- 	pub = new(PublicKey)
-@@ -680,6 +665,47 @@ func (sig *Sign) VerifyAggregateHashes(p
- 	return C.blsVerifyAggregatedHashes(&sig.v, &pubVec[0].v, unsafe.Pointer(&h[0]), C.mclSize(hashByte), C.mclSize(n)) == 1
- }
- 
-+// SignatureVerifyOrder --
-+// check the correctness of the order of signature in deserialize if true
-+func SignatureVerifyOrder(doVerify bool) {
-+	var b = 0
-+	if doVerify {
-+		b = 1
-+	}
-+	C.blsSignatureVerifyOrder(C.int(b))
-+}
-+
-+// SignByte --
-+func (sec *SecretKey) SignByte(msg []byte) (sig *Sign) {
-+	sig = new(Sign)
-+	// #nosec
-+	C.blsSign(&sig.v, &sec.v, unsafe.Pointer(&msg[0]), C.mclSize(len(msg)))
-+	return sig
-+}
-+
-+// VerifyByte --
-+func (sig *Sign) VerifyByte(pub *PublicKey, msg []byte) bool {
-+	if sig == nil || pub == nil {
-+		return false
-+	}
-+	// #nosec
-+	return C.blsVerify(&sig.v, &pub.v, unsafe.Pointer(&msg[0]), C.mclSize(len(msg))) == 1
-+}
-+
-+// Aggregate --
-+func (sig *Sign) Aggregate(sigVec []Sign) {
-+	C.blsAggregateSignature(&sig.v, &sigVec[0].v, C.mclSize(len(sigVec)))
-+}
-+
-+// FastAggregateVerify --
-+func (sig *Sign) FastAggregateVerify(pubVec []PublicKey, msg []byte) bool {
-+	if pubVec == nil {
-+		return false
-+	}
-+	n := len(pubVec)
-+	return C.blsFastAggregateVerify(&sig.v, &pubVec[0].v, C.mclSize(n), unsafe.Pointer(&msg[0]), C.mclSize(len(msg))) == 1
-+}
-+
- ///
- 
- var sRandReader io.Reader
+ // Serialize --
+ func (sec *SecretKey) Serialize() []byte {
+-	buf := make([]byte, 48)
++	buf := make([]byte, 32)
+ 	// #nosec
+ 	n := C.blsSecretKeySerialize(unsafe.Pointer(&buf[0]), C.mclSize(len(buf)), &sec.v)
+ 	if n == 0 {
