@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/herumi/bls-go-binary.png)](https://travis-ci.org/herumi/bls-go-binary)
+[![Build Status](https://api.travis-ci.com/herumi/bls-go-binary.svg?branch=master)](https://travis-ci.com/github/herumi/bls-go-binary)
+
 # bls with compiled static library
 
 This repository contains compiled static library of https://github.com/herumi/bls without `BLS_ETH=1`.
