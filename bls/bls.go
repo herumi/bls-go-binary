@@ -10,12 +10,12 @@ package bls
 #cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
 #cgo linux,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
 #cgo linux,mipsle LDFLAGS:-L${SRCDIR}/lib/linux/mipsel
-#cgo linux,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
+#cgo linux,arm LDFLAGS:-L${SRCDIR}/lib/linux/arm
 #cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
 #cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
 #cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
 #cgo openbsd,amd64 LDFLAGS:-L${SRCDIR}/lib/openbsd/amd64
-#cgo freebsd,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
+#cgo freebsd,amd64 LDFLAGS:-L${SRCDIR}/lib/freebsd/amd64
 typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
 int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 #include <mcl/bn_c384_256.h>
