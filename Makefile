@@ -6,7 +6,7 @@ include $(MCL_DIR)/common.mk
 
 UNIT?=8
 
-MIN_CFLAGS=-std=c++03 -O3 -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-stack-protector -DNDEBUG -DMCL_DONT_USE_OPENSSL -DMCL_LLVM_BMI2=0 -DMCL_USE_LLVM=1 -DMCL_USE_VINT -DMCL_SIZEOF_UNIT=$(UNIT) -DMCL_VINT_FIXED_BUFFER -DMCL_MAX_BIT_SIZE=384 -DCYBOZU_DONT_USE_EXCEPTION -DCYBOZU_DONT_USE_STRING -D_FORTIFY_SOURCE=0 -I$(BLS_DIR)/include -I$(MCL_DIR)/include $(ETH_CFLAGS) $(CFLAGS_USER)
+MIN_CFLAGS=-std=c++03 -O3 -fno-exceptions -fno-rtti -fno-stack-protector -DNDEBUG -DMCL_DONT_USE_OPENSSL -DMCL_LLVM_BMI2=0 -DMCL_USE_LLVM=1 -DMCL_USE_VINT -DMCL_SIZEOF_UNIT=$(UNIT) -DMCL_VINT_FIXED_BUFFER -DMCL_MAX_BIT_SIZE=384 -DCYBOZU_DONT_USE_EXCEPTION -DCYBOZU_DONT_USE_STRING -D_FORTIFY_SOURCE=0 -I$(BLS_DIR)/include -I$(MCL_DIR)/include $(ETH_CFLAGS) $(CFLAGS_USER)
 OBJ_DIR=obj
 OBJS=$(OBJ_DIR)/bls_c384_256.o $(OBJ_DIR)/fp.o $(OBJ_DIR)/base$(BIT).o
 
@@ -33,9 +33,9 @@ endif
 
 ifeq ($(CPU),x86-64)
   _ARCH=amd64
-#  MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
-#  MCL_STATIC_CODE=1
-#  OBJS+=$(MCL_DIR)/obj/static_code.o
+  MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
+  MCL_STATIC_CODE=1
+  OBJS+=$(MCL_DIR)/obj/static_code.o
 endif
 ifeq ($(CPU),aarch64)
   _ARCH=arm64
@@ -43,6 +43,9 @@ endif
 ifeq ($(CPU),arm)
   _ARCH=arm
   UNIT=4
+endif
+ifeq ($(CPU),systemz)
+  _ARCH=s390x
 endif
 
 LIB_DIR=bls/lib/$(_OS)/$(_ARCH)
@@ -86,6 +89,7 @@ IOS_AR=${XCODEPATH}/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar
 PLATFORM?="iPhoneOS"
 IOS_MIN_VERSION?=7.0
 IOS_CFLAGS=-fembed-bitcode -fno-common -DPIC -fPIC -Dmcl_EXPORTS
+IOS_CFLAGS+=-fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-stack-protector -DCYBOZU_DONT_USE_EXCEPTION -DCYBOZU_DONT_USE_STRING
 IOS_CFLAGS+=-DMCL_USE_VINT -DMCL_VINT_FIXED_BUFFER -DMCL_DONT_USE_OPENSSL -DMCL_DONT_USE_XBYAK -DMCL_LLVM_BMI2=0 -DMCL_USE_LLVM=1 -std=c++11 -Wall -Wextra -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -O3 -DNDEBUG $(ETH_CFLAGS)
 IOS_CFLAGS+=-I $(MCL_DIR)/include -I $(BLS_DIR)/include
 IOS_LDFLAGS=-dynamiclib -Wl,-flat_namespace -Wl,-undefined -Wl,suppress
