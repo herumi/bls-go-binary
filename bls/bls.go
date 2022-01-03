@@ -1,21 +1,7 @@
 package bls
 
 /*
-#cgo CFLAGS:-I${SRCDIR}/include
-#cgo LDFLAGS:-lbls384_256 -lstdc++ -lm
-#cgo ios LDFLAGS:-L${SRCDIR}/lib/ios
-#cgo android,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
-#cgo android,arm LDFLAGS:-L${SRCDIR}/lib/android/armeabi-v7a
-#cgo android,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
-#cgo linux,amd64 LDFLAGS:-L${SRCDIR}/lib/linux/amd64
-#cgo linux,arm64 LDFLAGS:-L${SRCDIR}/lib/linux/arm64
-#cgo linux,mipsle LDFLAGS:-L${SRCDIR}/lib/linux/mipsel
-#cgo linux,arm LDFLAGS:-L${SRCDIR}/lib/linux/arm
-#cgo darwin,amd64 LDFLAGS:-L${SRCDIR}/lib/darwin/amd64
-#cgo darwin,arm64 LDFLAGS:-L${SRCDIR}/lib/darwin/arm64
-#cgo windows,amd64 LDFLAGS:-L${SRCDIR}/lib/windows/amd64
-#cgo openbsd,amd64 LDFLAGS:-L${SRCDIR}/lib/openbsd/amd64
-#cgo freebsd,amd64 LDFLAGS:-L${SRCDIR}/lib/freebsd/amd64
+#cgo CFLAGS:-I${SRCDIR}./include
 typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
 int wrapReadRandCgo(void *self, void *buf, unsigned int n);
 #include <mcl/bn_c384_256.h>
@@ -30,6 +16,8 @@ import (
 	"unsafe"
 )
 
+const ethMode = false
+
 const EthModeOld = C.BLS_ETH_MODE_OLD
 const EthModeDraft05 = C.BLS_ETH_MODE_DRAFT_05
 const EthModeDraft06 = C.BLS_ETH_MODE_DRAFT_06
@@ -43,14 +31,6 @@ func hex2byte(s string) ([]byte, error) {
 	return hex.DecodeString(s)
 }
 
-// allow zero length byte
-func getPointer(msg []byte) unsafe.Pointer {
-	if len(msg) == 0 {
-		return nil
-	}
-	return unsafe.Pointer(&msg[0])
-}
-
 // Init --
 // call this function before calling all the other operations
 // this function is not thread safe
@@ -58,6 +38,14 @@ func Init(curve int) error {
 	err := C.blsInit(C.int(curve), C.MCLBN_COMPILED_TIME_VAR)
 	if err != 0 {
 		return fmt.Errorf("ERR Init curve=%d", curve)
+	}
+	if ethMode {
+		if curve != C.MCL_BLS12_381 {
+			return fmt.Errorf("ERR only BLS12-381")
+		}
+		if C.blsSetETHmode(C.BLS_ETH_MODE_DRAFT_07) != 0 {
+			return fmt.Errorf("ERR SetETHmode")
+		}
 	}
 	return nil
 }
@@ -96,7 +84,7 @@ func (id *ID) GetLittleEndian() []byte {
 // SetLittleEndian --
 func (id *ID) SetLittleEndian(buf []byte) error {
 	// #nosec
-	err := C.blsIdSetLittleEndian(&id.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	err := C.blsIdSetLittleEndian(&id.v, getPointer(buf), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsIdSetLittleEndian %x", err)
 	}
@@ -143,7 +131,7 @@ func (id *ID) GetDecString() string {
 func (id *ID) SetHexString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsIdSetHexStr(&id.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsIdSetHexStr(&id.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsIdSetHexStr %s", s)
 	}
@@ -154,7 +142,7 @@ func (id *ID) SetHexString(s string) error {
 func (id *ID) SetDecString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsIdSetDecStr(&id.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsIdSetDecStr(&id.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsIdSetDecStr %s", s)
 	}
@@ -203,7 +191,7 @@ func (sec *SecretKey) GetLittleEndian() []byte {
 // SetLittleEndian --
 func (sec *SecretKey) SetLittleEndian(buf []byte) error {
 	// #nosec
-	err := C.blsSecretKeySetLittleEndian(&sec.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	err := C.blsSecretKeySetLittleEndian(&sec.v, getPointer(buf), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSecretKeySetLittleEndian %x", err)
 	}
@@ -213,7 +201,7 @@ func (sec *SecretKey) SetLittleEndian(buf []byte) error {
 // SetLittleEndianMod --
 func (sec *SecretKey) SetLittleEndianMod(buf []byte) error {
 	// #nosec
-	err := C.blsSecretKeySetLittleEndianMod(&sec.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	err := C.blsSecretKeySetLittleEndianMod(&sec.v, getPointer(buf), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSecretKeySetLittleEndianMod %x", err)
 	}
@@ -260,7 +248,7 @@ func (sec *SecretKey) GetDecString() string {
 func (sec *SecretKey) SetHexString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsSecretKeySetHexStr(&sec.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsSecretKeySetHexStr(&sec.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSecretKeySetHexStr %s", s)
 	}
@@ -271,7 +259,7 @@ func (sec *SecretKey) SetHexString(s string) error {
 func (sec *SecretKey) SetDecString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsSecretKeySetDecStr(&sec.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsSecretKeySetDecStr(&sec.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSecretKeySetDecStr %s", s)
 	}
@@ -329,6 +317,9 @@ func GetMasterPublicKey(msk []SecretKey) (mpk []PublicKey) {
 
 // Set --
 func (sec *SecretKey) Set(msk []SecretKey, id *ID) error {
+	if len(msk) == 0 {
+		return fmt.Errorf("Set zero mask")
+	}
 	// #nosec
 	ret := C.blsSecretKeyShare(&sec.v, &msk[0].v, (C.mclSize)(len(msk)), &id.v)
 	if ret != 0 {
@@ -339,11 +330,15 @@ func (sec *SecretKey) Set(msk []SecretKey, id *ID) error {
 
 // Recover --
 func (sec *SecretKey) Recover(secVec []SecretKey, idVec []ID) error {
-	if len(secVec) != len(idVec) {
+	n := len(secVec)
+	if n == 0 {
+		return fmt.Errorf("Recover zero secVec")
+	}
+	if n != len(idVec) {
 		return fmt.Errorf("err SecretKey.Recover bad size")
 	}
 	// #nosec
-	ret := C.blsSecretKeyRecover(&sec.v, &secVec[0].v, (*C.blsId)(&idVec[0].v), (C.mclSize)(len(idVec)))
+	ret := C.blsSecretKeyRecover(&sec.v, &secVec[0].v, (*C.blsId)(&idVec[0].v), (C.mclSize)(n))
 	if ret != 0 {
 		return fmt.Errorf("err blsSecretKeyRecover")
 	}
@@ -381,7 +376,7 @@ func (keys PublicKeys) JSON() string {
 
 // Serialize --
 func (pub *PublicKey) Serialize() []byte {
-	buf := make([]byte, 96)
+	buf := make([]byte, C.blsGetSerializedPublicKeyByteSize())
 	// #nosec
 	n := C.blsPublicKeySerialize(unsafe.Pointer(&buf[0]), C.mclSize(len(buf)), &pub.v)
 	if n == 0 {
@@ -429,7 +424,7 @@ func (pub *PublicKey) GetHexString() string {
 func (pub *PublicKey) SetHexString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsPublicKeySetHexStr(&pub.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsPublicKeySetHexStr(&pub.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsPublicKeySetHexStr %s", s)
 	}
@@ -456,6 +451,9 @@ func (pub *PublicKey) Add(rhs *PublicKey) {
 
 // Set --
 func (pub *PublicKey) Set(mpk []PublicKey, id *ID) error {
+	if len(mpk) == 0 {
+		return fmt.Errorf("Set zero mpk")
+	}
 	// #nosec
 	ret := C.blsPublicKeyShare(&pub.v, &mpk[0].v, (C.mclSize)(len(mpk)), &id.v)
 	if ret != 0 {
@@ -466,11 +464,15 @@ func (pub *PublicKey) Set(mpk []PublicKey, id *ID) error {
 
 // Recover --
 func (pub *PublicKey) Recover(pubVec []PublicKey, idVec []ID) error {
-	if len(pubVec) != len(idVec) {
+	n := len(pubVec)
+	if n == 0 {
+		return fmt.Errorf("Recover zero pubVec")
+	}
+	if n != len(idVec) {
 		return fmt.Errorf("err PublicKey.Recover bad size")
 	}
 	// #nosec
-	ret := C.blsPublicKeyRecover(&pub.v, &pubVec[0].v, (*C.blsId)(&idVec[0].v), (C.mclSize)(len(idVec)))
+	ret := C.blsPublicKeyRecover(&pub.v, &pubVec[0].v, (*C.blsId)(&idVec[0].v), (C.mclSize)(n))
 	if ret != 0 {
 		return fmt.Errorf("err blsPublicKeyRecover")
 	}
@@ -484,7 +486,7 @@ type Sign struct {
 
 // Serialize --
 func (sig *Sign) Serialize() []byte {
-	buf := make([]byte, 48)
+	buf := make([]byte, C.blsGetSerializedSignatureByteSize())
 	// #nosec
 	n := C.blsSignatureSerialize(unsafe.Pointer(&buf[0]), C.mclSize(len(buf)), &sig.v)
 	if n == 0 {
@@ -532,7 +534,7 @@ func (sig *Sign) GetHexString() string {
 func (sig *Sign) SetHexString(s string) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.blsSignatureSetHexStr(&sig.v, (*C.char)(unsafe.Pointer(&buf[0])), C.mclSize(len(buf)))
+	err := C.blsSignatureSetHexStr(&sig.v, (*C.char)(getPointer(buf)), C.mclSize(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err blsSignatureSetHexStr %s", s)
 	}
@@ -574,7 +576,7 @@ func (sec *SecretKey) Sign(m string) (sig *Sign) {
 	sig = new(Sign)
 	buf := []byte(m)
 	// #nosec
-	C.blsSign(&sig.v, &sec.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	C.blsSign(&sig.v, &sec.v, getPointer(buf), C.mclSize(len(buf)))
 	return sig
 }
 
@@ -585,6 +587,9 @@ func (sig *Sign) Add(rhs *Sign) {
 
 // Recover --
 func (sig *Sign) Recover(sigVec []Sign, idVec []ID) error {
+	if len(sigVec) == 0 {
+		return fmt.Errorf("Recover zero sigVec")
+	}
 	if len(sigVec) != len(idVec) {
 		return fmt.Errorf("err Sign.Recover bad size")
 	}
@@ -603,7 +608,7 @@ func (sig *Sign) Verify(pub *PublicKey, m string) bool {
 	}
 	buf := []byte(m)
 	// #nosec
-	return C.blsVerify(&sig.v, &pub.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf))) == 1
+	return C.blsVerify(&sig.v, &pub.v, getPointer(buf), C.mclSize(len(buf))) == 1
 }
 
 func bool2int(b bool) C.int {
@@ -651,7 +656,7 @@ func DHKeyExchange(sec *SecretKey, pub *PublicKey) (out PublicKey) {
 func HashAndMapToSignature(buf []byte) *Sign {
 	sig := new(Sign)
 	// #nosec
-	err := C.blsHashToSignature(&sig.v, unsafe.Pointer(&buf[0]), C.mclSize(len(buf)))
+	err := C.blsHashToSignature(&sig.v, getPointer(buf), C.mclSize(len(buf)))
 	if err != 0 {
 		return nil
 	}
@@ -670,7 +675,7 @@ func VerifyPairing(X *Sign, Y *Sign, pub *PublicKey) bool {
 func (sec *SecretKey) SignHash(hash []byte) (sig *Sign) {
 	sig = new(Sign)
 	// #nosec
-	err := C.blsSignHash(&sig.v, &sec.v, unsafe.Pointer(&hash[0]), C.mclSize(len(hash)))
+	err := C.blsSignHash(&sig.v, &sec.v, getPointer(hash), C.mclSize(len(hash)))
 	if err == 0 {
 		return sig
 	}
@@ -683,7 +688,7 @@ func (sig *Sign) VerifyHash(pub *PublicKey, hash []byte) bool {
 		return false
 	}
 	// #nosec
-	return C.blsVerifyHash(&sig.v, &pub.v, unsafe.Pointer(&hash[0]), C.mclSize(len(hash))) == 1
+	return C.blsVerifyHash(&sig.v, &pub.v, getPointer(hash), C.mclSize(len(hash))) == 1
 }
 
 func min(x, y int) int {
@@ -703,6 +708,9 @@ func (sig *Sign) VerifyAggregateHashes(pubVec []PublicKey, hash [][]byte) bool {
 		return false
 	}
 	hashByte := len(hash[0])
+	if hashByte == 0 {
+		return false
+	}
 	h := make([]byte, n*hashByte)
 	for i := 0; i < n; i++ {
 		hn := len(hash[i])
@@ -740,7 +748,13 @@ func (sig *Sign) VerifyByte(pub *PublicKey, msg []byte) bool {
 
 // Aggregate --
 func (sig *Sign) Aggregate(sigVec []Sign) {
-	C.blsAggregateSignature(&sig.v, &sigVec[0].v, C.mclSize(len(sigVec)))
+	var p *C.blsSignature
+	if len(sigVec) == 0 {
+		p = nil
+	} else {
+		p = &sigVec[0].v
+	}
+	C.blsAggregateSignature(&sig.v, p, C.mclSize(len(sigVec)))
 }
 
 // FastAggregateVerify --
@@ -783,7 +797,20 @@ func SetRandFunc(randReader io.Reader) {
 	}
 }
 
-// BlsGetGeneratorOfPublicKey -
-func BlsGetGeneratorOfPublicKey(pub *PublicKey) {
+// GetGeneratorOfPublicKey -
+func GetGeneratorOfPublicKey(pub *PublicKey) {
 	C.blsGetGeneratorOfPublicKey(&pub.v)
+}
+
+// SetGeneratorOfPublicKey -
+func SetGeneratorOfPublicKey(pub *PublicKey) error {
+	if C.blsSetGeneratorOfPublicKey(&pub.v) != 0 {
+		return fmt.Errorf("bad public key")
+	}
+	return nil
+}
+
+// keep for backward compatibility
+func BlsGetGeneratorOfPublicKey(pub *PublicKey) {
+	GetGeneratorOfPublicKey(pub)
 }

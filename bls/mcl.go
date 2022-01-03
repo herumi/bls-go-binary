@@ -74,6 +74,14 @@ func GetG2ByteSize() int {
 	return GetFpByteSize() * 2
 }
 
+// allow zero length byte
+func getPointer(msg []byte) unsafe.Pointer {
+	if len(msg) == 0 {
+		return nil
+	}
+	return unsafe.Pointer(&msg[0])
+}
+
 // GetCurveOrder --
 // return the order of G1
 func GetCurveOrder() string {
@@ -161,7 +169,7 @@ func (x *Fr) SetInt64(v int64) {
 func (x *Fr) SetString(s string, base int) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.mclBnFr_setStr(x.getPointer(), (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(base))
+	err := C.mclBnFr_setStr(x.getPointer(), (*C.char)(getPointer(buf)), C.size_t(len(buf)), C.int(base))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFr_setStr %x", err)
 	}
@@ -171,7 +179,7 @@ func (x *Fr) SetString(s string, base int) error {
 // Deserialize --
 func (x *Fr) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnFr_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnFr_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnFr_deserialize %x", buf)
 	}
@@ -181,7 +189,7 @@ func (x *Fr) Deserialize(buf []byte) error {
 // SetLittleEndian --
 func (x *Fr) SetLittleEndian(buf []byte) error {
 	// #nosec
-	err := C.mclBnFr_setLittleEndian(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFr_setLittleEndian(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFr_setLittleEndian %x", err)
 	}
@@ -191,7 +199,7 @@ func (x *Fr) SetLittleEndian(buf []byte) error {
 // SetLittleEndianMod --
 func (x *Fr) SetLittleEndianMod(buf []byte) error {
 	// #nosec
-	err := C.mclBnFr_setLittleEndianMod(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFr_setLittleEndianMod(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFr_setLittleEndianMod %x", err)
 	}
@@ -201,7 +209,7 @@ func (x *Fr) SetLittleEndianMod(buf []byte) error {
 // SetBigEndianMod --
 func (x *Fr) SetBigEndianMod(buf []byte) error {
 	// #nosec
-	err := C.mclBnFr_setBigEndianMod(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFr_setBigEndianMod(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFr_setBigEndianMod %x", err)
 	}
@@ -249,7 +257,7 @@ func (x *Fr) SetByCSPRNG() {
 // SetHashOf --
 func (x *Fr) SetHashOf(buf []byte) bool {
 	// #nosec
-	return C.mclBnFr_setHashOf(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf))) == 0
+	return C.mclBnFr_setHashOf(x.getPointer(), getPointer(buf), C.size_t(len(buf))) == 0
 }
 
 // GetString --
@@ -341,7 +349,7 @@ func (x *Fp) SetInt64(v int64) {
 func (x *Fp) SetString(s string, base int) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.mclBnFp_setStr(x.getPointer(), (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(base))
+	err := C.mclBnFp_setStr(x.getPointer(), (*C.char)(getPointer(buf)), C.size_t(len(buf)), C.int(base))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFp_setStr %x", err)
 	}
@@ -351,7 +359,7 @@ func (x *Fp) SetString(s string, base int) error {
 // Deserialize --
 func (x *Fp) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnFp_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnFp_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnFp_deserialize %x", buf)
 	}
@@ -361,7 +369,7 @@ func (x *Fp) Deserialize(buf []byte) error {
 // SetLittleEndian --
 func (x *Fp) SetLittleEndian(buf []byte) error {
 	// #nosec
-	err := C.mclBnFp_setLittleEndian(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFp_setLittleEndian(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFp_setLittleEndian %x", err)
 	}
@@ -371,7 +379,7 @@ func (x *Fp) SetLittleEndian(buf []byte) error {
 // SetLittleEndianMod --
 func (x *Fp) SetLittleEndianMod(buf []byte) error {
 	// #nosec
-	err := C.mclBnFp_setLittleEndianMod(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFp_setLittleEndianMod(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFp_setLittleEndianMod %x", err)
 	}
@@ -381,7 +389,7 @@ func (x *Fp) SetLittleEndianMod(buf []byte) error {
 // SetBigEndianMod --
 func (x *Fp) SetBigEndianMod(buf []byte) error {
 	// #nosec
-	err := C.mclBnFp_setBigEndianMod(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnFp_setBigEndianMod(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnFp_setBigEndianMod %x", err)
 	}
@@ -429,7 +437,7 @@ func (x *Fp) SetByCSPRNG() {
 // SetHashOf --
 func (x *Fp) SetHashOf(buf []byte) bool {
 	// #nosec
-	return C.mclBnFp_setHashOf(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf))) == 0
+	return C.mclBnFp_setHashOf(x.getPointer(), getPointer(buf), C.size_t(len(buf))) == 0
 }
 
 // GetString --
@@ -514,7 +522,7 @@ func (x *Fp2) Clear() {
 // Deserialize --
 func (x *Fp2) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnFp2_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnFp2_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnFp2_deserialize %x", buf)
 	}
@@ -610,7 +618,7 @@ func (x *G1) Clear() {
 func (x *G1) SetString(s string, base int) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.mclBnG1_setStr(x.getPointer(), (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(base))
+	err := C.mclBnG1_setStr(x.getPointer(), (*C.char)(getPointer(buf)), C.size_t(len(buf)), C.int(base))
 	if err != 0 {
 		return fmt.Errorf("err mclBnG1_setStr %x", err)
 	}
@@ -620,7 +628,7 @@ func (x *G1) SetString(s string, base int) error {
 // Deserialize --
 func (x *G1) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnG1_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnG1_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnG1_deserialize %x", buf)
 	}
@@ -651,13 +659,13 @@ func (x *G1) DeserializeUncompressed(buf []byte) error {
 		return nil
 	}
 	// #nosec
-	var n = C.mclBnFp_deserialize(x.X.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	var n = C.mclBnFp_deserialize(x.X.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 {
 		return fmt.Errorf("err UncompressedDeserialize X %x", buf)
 	}
 	buf = buf[n:]
 	// #nosec
-	n = C.mclBnFp_deserialize(x.Y.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n = C.mclBnFp_deserialize(x.Y.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 {
 		return fmt.Errorf("err UncompressedDeserialize Y %x", buf)
 	}
@@ -691,7 +699,7 @@ func (x *G1) IsValidOrder() bool {
 // HashAndMapTo --
 func (x *G1) HashAndMapTo(buf []byte) error {
 	// #nosec
-	err := C.mclBnG1_hashAndMapTo(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnG1_hashAndMapTo(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnG1_hashAndMapTo %x", err)
 	}
@@ -773,10 +781,15 @@ func G1Mul(out *G1, x *G1, y *Fr) {
 
 // G1MulVec -- multi scalar multiplication out = sum mul(xVec[i], yVec[i])
 func G1MulVec(out *G1, xVec []G1, yVec []Fr) {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n != len(yVec) {
 		panic("xVec and yVec have the same size")
 	}
-	C.mclBnG1_mulVec(out.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	if n == 0 {
+		out.Clear()
+		return
+	}
+	C.mclBnG1_mulVec(out.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 }
 
 // G1MulCT -- constant time (depending on bit lengh of y)
@@ -807,7 +820,7 @@ func (x *G2) Clear() {
 func (x *G2) SetString(s string, base int) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.mclBnG2_setStr(x.getPointer(), (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(base))
+	err := C.mclBnG2_setStr(x.getPointer(), (*C.char)(getPointer(buf)), C.size_t(len(buf)), C.int(base))
 	if err != 0 {
 		return fmt.Errorf("err mclBnG2_setStr %x", err)
 	}
@@ -817,7 +830,7 @@ func (x *G2) SetString(s string, base int) error {
 // Deserialize --
 func (x *G2) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnG2_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnG2_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnG2_deserialize %x", buf)
 	}
@@ -831,13 +844,13 @@ func (x *G2) DeserializeUncompressed(buf []byte) error {
 		return nil
 	}
 	// #nosec
-	var n = C.mclBnFp2_deserialize(x.X.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	var n = C.mclBnFp2_deserialize(x.X.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 {
 		return fmt.Errorf("err UncompressedDeserialize X %x", buf)
 	}
 	buf = buf[n:]
 	// #nosec
-	n = C.mclBnFp2_deserialize(x.Y.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n = C.mclBnFp2_deserialize(x.Y.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 {
 		return fmt.Errorf("err UncompressedDeserialize Y %x", buf)
 	}
@@ -872,7 +885,7 @@ func (x *G2) IsValidOrder() bool {
 // HashAndMapTo --
 func (x *G2) HashAndMapTo(buf []byte) error {
 	// #nosec
-	err := C.mclBnG2_hashAndMapTo(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	err := C.mclBnG2_hashAndMapTo(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if err != 0 {
 		return fmt.Errorf("err mclBnG2_hashAndMapTo %x", err)
 	}
@@ -954,10 +967,15 @@ func G2Mul(out *G2, x *G2, y *Fr) {
 
 // G2MulVec -- multi scalar multiplication out = sum mul(xVec[i], yVec[i])
 func G2MulVec(out *G2, xVec []G2, yVec []Fr) {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n != len(yVec) {
 		panic("xVec and yVec have the same size")
 	}
-	C.mclBnG2_mulVec(out.getPointer(), (*C.mclBnG2)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	if n == 0 {
+		out.Clear()
+		return
+	}
+	C.mclBnG2_mulVec(out.getPointer(), (*C.mclBnG2)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 }
 
 // GT --
@@ -987,7 +1005,7 @@ func (x *GT) SetInt64(v int64) {
 func (x *GT) SetString(s string, base int) error {
 	buf := []byte(s)
 	// #nosec
-	err := C.mclBnGT_setStr(x.getPointer(), (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(base))
+	err := C.mclBnGT_setStr(x.getPointer(), (*C.char)(getPointer(buf)), C.size_t(len(buf)), C.int(base))
 	if err != 0 {
 		return fmt.Errorf("err mclBnGT_setStr %x", err)
 	}
@@ -997,7 +1015,7 @@ func (x *GT) SetString(s string, base int) error {
 // Deserialize --
 func (x *GT) Deserialize(buf []byte) error {
 	// #nosec
-	n := C.mclBnGT_deserialize(x.getPointer(), unsafe.Pointer(&buf[0]), C.size_t(len(buf)))
+	n := C.mclBnGT_deserialize(x.getPointer(), getPointer(buf), C.size_t(len(buf)))
 	if n == 0 || int(n) != len(buf) {
 		return fmt.Errorf("err mclBnGT_deserialize %x", buf)
 	}
@@ -1109,10 +1127,15 @@ func MillerLoop(out *GT, x *G1, y *G2) {
 
 // MillerLoopVec -- multi pairings ; out = prod_i e(xVec[i], yVec[i])
 func MillerLoopVec(out *GT, xVec []G1, yVec []G2) {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n != len(yVec) {
 		panic("xVec and yVec have the same size")
 	}
-	C.mclBn_millerLoopVec(out.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&xVec[0])), (*C.mclBnG2)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	if n == 0 {
+		out.SetInt64(1)
+		return
+	}
+	C.mclBn_millerLoopVec(out.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&xVec[0])), (*C.mclBnG2)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 }
 
 // GetUint64NumToPrecompute --
@@ -1140,8 +1163,13 @@ func PrecomputedMillerLoop2(out *GT, P1 *G1, Q1buf []uint64, P2 *G1, Q2buf []uin
 
 // FrEvaluatePolynomial -- y = c[0] + c[1] * x + c[2] * x^2 + ...
 func FrEvaluatePolynomial(y *Fr, c []Fr, x *Fr) error {
+	n := len(c)
+	if n == 0 {
+		y.Clear()
+		return nil
+	}
 	// #nosec
-	err := C.mclBn_FrEvaluatePolynomial(y.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&c[0])), (C.size_t)(len(c)), x.getPointer())
+	err := C.mclBn_FrEvaluatePolynomial(y.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&c[0])), (C.size_t)(n), x.getPointer())
 	if err != 0 {
 		return fmt.Errorf("err mclBn_FrEvaluatePolynomial")
 	}
@@ -1150,8 +1178,13 @@ func FrEvaluatePolynomial(y *Fr, c []Fr, x *Fr) error {
 
 // G1EvaluatePolynomial -- y = c[0] + c[1] * x + c[2] * x^2 + ...
 func G1EvaluatePolynomial(y *G1, c []G1, x *Fr) error {
+	n := len(c)
+	if n == 0 {
+		y.Clear()
+		return nil
+	}
 	// #nosec
-	err := C.mclBn_G1EvaluatePolynomial(y.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&c[0])), (C.size_t)(len(c)), x.getPointer())
+	err := C.mclBn_G1EvaluatePolynomial(y.getPointer(), (*C.mclBnG1)(unsafe.Pointer(&c[0])), (C.size_t)(n), x.getPointer())
 	if err != 0 {
 		return fmt.Errorf("err mclBn_G1EvaluatePolynomial")
 	}
@@ -1160,8 +1193,13 @@ func G1EvaluatePolynomial(y *G1, c []G1, x *Fr) error {
 
 // G2EvaluatePolynomial -- y = c[0] + c[1] * x + c[2] * x^2 + ...
 func G2EvaluatePolynomial(y *G2, c []G2, x *Fr) error {
+	n := len(c)
+	if n == 0 {
+		y.Clear()
+		return nil
+	}
 	// #nosec
-	err := C.mclBn_G2EvaluatePolynomial(y.getPointer(), (*C.mclBnG2)(unsafe.Pointer(&c[0])), (C.size_t)(len(c)), x.getPointer())
+	err := C.mclBn_G2EvaluatePolynomial(y.getPointer(), (*C.mclBnG2)(unsafe.Pointer(&c[0])), (C.size_t)(n), x.getPointer())
 	if err != 0 {
 		return fmt.Errorf("err mclBn_G2EvaluatePolynomial")
 	}
@@ -1170,11 +1208,15 @@ func G2EvaluatePolynomial(y *G2, c []G2, x *Fr) error {
 
 // FrLagrangeInterpolation --
 func FrLagrangeInterpolation(out *Fr, xVec []Fr, yVec []Fr) error {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n == 0 {
+		return fmt.Errorf("err FrLagrangeInterpolation:n=0")
+	}
+	if n != len(yVec) {
 		return fmt.Errorf("err FrLagrangeInterpolation:bad size")
 	}
 	// #nosec
-	err := C.mclBn_FrLagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	err := C.mclBn_FrLagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnFr)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 	if err != 0 {
 		return fmt.Errorf("err FrLagrangeInterpolation")
 	}
@@ -1183,11 +1225,15 @@ func FrLagrangeInterpolation(out *Fr, xVec []Fr, yVec []Fr) error {
 
 // G1LagrangeInterpolation --
 func G1LagrangeInterpolation(out *G1, xVec []Fr, yVec []G1) error {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n == 0 {
+		return fmt.Errorf("err G1LagrangeInterpolation:n=0")
+	}
+	if n != len(yVec) {
 		return fmt.Errorf("err G1LagrangeInterpolation:bad size")
 	}
 	// #nosec
-	err := C.mclBn_G1LagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnG1)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	err := C.mclBn_G1LagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnG1)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 	if err != 0 {
 		return fmt.Errorf("err G1LagrangeInterpolation")
 	}
@@ -1196,11 +1242,15 @@ func G1LagrangeInterpolation(out *G1, xVec []Fr, yVec []G1) error {
 
 // G2LagrangeInterpolation --
 func G2LagrangeInterpolation(out *G2, xVec []Fr, yVec []G2) error {
-	if len(xVec) != len(yVec) {
+	n := len(xVec)
+	if n == 0 {
+		return fmt.Errorf("err G2LagrangeInterpolation:n=0")
+	}
+	if n != len(yVec) {
 		return fmt.Errorf("err G2LagrangeInterpolation:bad size")
 	}
 	// #nosec
-	err := C.mclBn_G2LagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnG2)(unsafe.Pointer(&yVec[0])), (C.size_t)(len(xVec)))
+	err := C.mclBn_G2LagrangeInterpolation(out.getPointer(), (*C.mclBnFr)(unsafe.Pointer(&xVec[0])), (*C.mclBnG2)(unsafe.Pointer(&yVec[0])), (C.size_t)(n))
 	if err != 0 {
 		return fmt.Errorf("err G2LagrangeInterpolation")
 	}
