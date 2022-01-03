@@ -2,7 +2,7 @@ SRC_DIR?=src
 BLS_DIR=$(SRC_DIR)/bls
 MCL_DIR=$(BLS_DIR)/mcl
 include $(MCL_DIR)/common.mk
-#ETH_CFLAGS=-DBLS_ETH -DBLS_SWAP_G
+#ETH_CFLAGS=-DBLS_ETH
 
 UNIT?=8
 
@@ -33,11 +33,11 @@ endif
 
 ifeq ($(CPU),x86-64)
   _ARCH=amd64
-  ifdef $(ETH_CFLAGS)
-    MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
-    MCL_STATIC_CODE=1
-    OBJS+=$(MCL_DIR)/obj/static_code.o
-  endif
+endif
+ifeq ($(CPU)$(ETH_CFLAGS),x86-64-DBLS_ETH)
+  MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
+  MCL_STATIC_CODE=1
+  OBJS+=$(MCL_DIR)/obj/static_code.o
 endif
 ifeq ($(CPU),aarch64)
   _ARCH=arm64
