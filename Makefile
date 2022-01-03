@@ -33,9 +33,11 @@ endif
 
 ifeq ($(CPU),x86-64)
   _ARCH=amd64
-  MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
-  MCL_STATIC_CODE=1
-  OBJS+=$(MCL_DIR)/obj/static_code.o
+  ifdef $(ETH_CFLAGS)
+    MIN_CFLAGS+=-DMCL_STATIC_CODE -DMCL_DONT_USE_XBYAK
+    MCL_STATIC_CODE=1
+    OBJS+=$(MCL_DIR)/obj/static_code.o
+  endif
 endif
 ifeq ($(CPU),aarch64)
   _ARCH=arm64
