@@ -128,7 +128,6 @@ func TestCast(t *testing.T) {
 	}
 }
 
-
 func BenchmarkPairing(b *testing.B) {
 	Init(BLS12_381)
 	var P G1
