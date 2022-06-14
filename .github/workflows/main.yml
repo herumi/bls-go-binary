@@ -4,10 +4,8 @@ on: [push]
 jobs:
   build:
     name: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+#     runs-on: ubuntu-latest
+    runs-on: [self-hosted, build]
     steps:
     - uses: actions/checkout@v2
     - run: go test -v ./bls
