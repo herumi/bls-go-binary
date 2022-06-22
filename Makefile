@@ -100,21 +100,23 @@ IOS_LIB=libbls$(CURVE_BIT).a
 IOS_LIBS=ios/armv7/$(IOS_LIB) ios/arm64/$(IOS_LIB) ios/x86_64/$(IOS_LIB) ios/i386/$(IOS_LIB)
 
 ios:
-	$(MAKE) each_ios PLATFORM="iPhoneOS" ARCH=armv7 BIT=32 UNIT=4
-	$(MAKE) each_ios PLATFORM="iPhoneOS" ARCH=arm64 BIT=64 UNIT=8
-	$(MAKE) each_ios PLATFORM="iPhoneSimulator" ARCH=x86_64 BIT=64 UNIT=8
-	$(MAKE) each_ios PLATFORM="iPhoneSimulator" ARCH=i386 BIT=32 UNIT=4
+	$(MAKE) each_ios MINVERSION="-miphoneos-version-min" PLATFORM="iPhoneOS" ARCH=armv7 BIT=32 UNIT=4
+	$(MAKE) each_ios MINVERSION="-miphoneos-version-min" PLATFORM="iPhoneOS" ARCH=arm64 BIT=64 UNIT=8
+	$(MAKE) each_ios MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=arm64 BIT=64 UNIT=8
+	$(MAKE) each_ios MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=x86_64 BIT=64 UNIT=8
+	$(MAKE) each_ios MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=i386 BIT=32 UNIT=4
 	@echo $(IOS_LIBS)
 	@mkdir -p bls/lib/ios
 	lipo $(IOS_LIBS) -create -output bls/lib/ios/$(IOS_LIB)
 
 each_ios: $(BASE_LL)
-	@echo "Building iOS $(ARCH) BIT=$(BIT) UNIT=$(UNIT)"
+	@echo "Building $(PLATFORM) $(ARCH) BIT=$(BIT) UNIT=$(UNIT)"
 	$(eval IOS_CFLAGS=$(IOS_CFLAGS) -DMCL_SIZEOF_UNIT=$(UNIT))
 	@echo IOS_CFLAGS=$(IOS_CFLAGS)
 	$(eval IOS_OUTDIR=ios/$(ARCH))
 	$(eval IOS_SDK_PATH=$(XCODEPATH)/Platforms/$(PLATFORM).platform/Developer/SDKs/$(PLATFORM).sdk)
-	$(eval IOS_COMMON=-arch $(ARCH) -isysroot $(IOS_SDK_PATH) -mios-version-min=$(IOS_MIN_VERSION))
+	$(eval IOS_COMMON=-arch $(ARCH) -isysroot $(IOS_SDK_PATH) $(MINVERSION)=$(IOS_MIN_VERSION))
+	echo $(IOS_SDK_PATH)
 	@mkdir -p $(IOS_OUTDIR)
 	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c $(MCL_DIR)/src/fp.cpp -o $(IOS_OUTDIR)/fp.o
 	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c $(MCL_DIR)/src/base$(BIT).ll -o $(IOS_OUTDIR)/base$(BIT).o
