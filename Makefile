@@ -97,24 +97,32 @@ IOS_CFLAGS+=-I $(MCL_DIR)/include -I $(BLS_DIR)/include
 IOS_LDFLAGS=-dynamiclib -Wl,-flat_namespace -Wl,-undefined -Wl,suppress
 CURVE_BIT?=384_256
 IOS_LIB=libbls$(CURVE_BIT).a
-IOS_LIBS=ios/armv7/$(IOS_LIB) ios/arm64/$(IOS_LIB) ios/x86_64/$(IOS_LIB) ios/i386/$(IOS_LIB)
+IOS_LIBS=ios/armv7/$(IOS_LIB) ios/arm64/$(IOS_LIB) iossimulator/x86_64/$(IOS_LIB) iossimulator/i386/$(IOS_LIB)
+SIMULATOR_LIBS= iossimulator/arm64/$(IOS_LIB) iossimulator/x86_64/$(IOS_LIB) iossimulator/i386/$(IOS_LIB)
 
-ios:
-	$(MAKE) each_ios PLATFORM="iPhoneOS" ARCH=armv7 BIT=32 UNIT=4
-	$(MAKE) each_ios PLATFORM="iPhoneOS" ARCH=arm64 BIT=64 UNIT=8
-	$(MAKE) each_ios PLATFORM="iPhoneSimulator" ARCH=x86_64 BIT=64 UNIT=8
-	$(MAKE) each_ios PLATFORM="iPhoneSimulator" ARCH=i386 BIT=32 UNIT=4
+
+ios: ios_simulator
+	$(MAKE) each_ios OUTDIR="ios" MINVERSION="-mios-version-min" PLATFORM="iPhoneOS" ARCH=armv7 BIT=32 UNIT=4
+	$(MAKE) each_ios OUTDIR="ios" MINVERSION="-mios-version-min" PLATFORM="iPhoneOS" ARCH=arm64 BIT=64 UNIT=8
 	@echo $(IOS_LIBS)
 	@mkdir -p bls/lib/ios
 	lipo $(IOS_LIBS) -create -output bls/lib/ios/$(IOS_LIB)
 
+ios_simulator:
+	$(MAKE) each_ios OUTDIR="iossimulator" MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=arm64 BIT=64 UNIT=8
+	$(MAKE) each_ios OUTDIR="iossimulator" MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=x86_64 BIT=64 UNIT=8
+	$(MAKE) each_ios OUTDIR="iossimulator" MINVERSION="-mios-simulator-version-min" PLATFORM="iPhoneSimulator" ARCH=i386 BIT=32 UNIT=4
+	@echo $(SIMULATOR_LIBS)
+	@mkdir -p bls/lib/iossimulator
+	lipo $(SIMULATOR_LIBS) -create  -output bls/lib/iossimulator/$(IOS_LIB)
+
 each_ios: $(BASE_LL)
-	@echo "Building iOS $(ARCH) BIT=$(BIT) UNIT=$(UNIT)"
+	@echo "Building $(PLATFORM) $(ARCH) BIT=$(BIT) UNIT=$(UNIT)"
 	$(eval IOS_CFLAGS=$(IOS_CFLAGS) -DMCL_SIZEOF_UNIT=$(UNIT))
 	@echo IOS_CFLAGS=$(IOS_CFLAGS)
-	$(eval IOS_OUTDIR=ios/$(ARCH))
+	$(eval IOS_OUTDIR=$(OUTDIR)/$(ARCH))
 	$(eval IOS_SDK_PATH=$(XCODEPATH)/Platforms/$(PLATFORM).platform/Developer/SDKs/$(PLATFORM).sdk)
-	$(eval IOS_COMMON=-arch $(ARCH) -isysroot $(IOS_SDK_PATH) -mios-version-min=$(IOS_MIN_VERSION))
+	$(eval IOS_COMMON=-arch $(ARCH) -isysroot $(IOS_SDK_PATH) $(MINVERSION)=$(IOS_MIN_VERSION))
 	@mkdir -p $(IOS_OUTDIR)
 	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c $(MCL_DIR)/src/fp.cpp -o $(IOS_OUTDIR)/fp.o
 	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c $(MCL_DIR)/src/base$(BIT).ll -o $(IOS_OUTDIR)/base$(BIT).o
@@ -140,4 +148,4 @@ clean:
 	$(MAKE) -C $(BLS_DIR) clean
 	$(RM) -rf obj/*.o android/obj/* bls/lib/android/*
 
-.PHONY: android ios each_ios clean
+.PHONY: android ios ios_simulator each_ios clean 
