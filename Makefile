@@ -148,4 +148,4 @@ clean:
 	$(MAKE) -C $(BLS_DIR) clean
 	$(RM) -rf obj/*.o android/obj/* bls/lib/android/*
 
-.PHONY: android ios ios_simulator each_ios clean 
+.PHONY: android ios ios_simulator each_ios clean
