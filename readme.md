@@ -13,20 +13,25 @@ If you want the binary compatible with eth2-spec, then see [bls-eth-go-binary](h
 # How to build the static binary
 The following steps are not necessary if you use compiled binary in this repository.
 
-
 ```
-mkdir work
-git clone https://github.com/herumi/mcl
-git clone https://github.com/herumi/bls
+git clone --recursive https://github.com/herumi/bls-go-binary
+cd bls-go-binary
+#git submodule update --init --recursive
 ```
 
-* Linux, Mac, Windows(mingw64)
-clang generates better binary than gcc.
+## Linux, Mac, Windows(mingw64)
+clang is necessary to build ll files.
 ```
 make CXX=clang++
 ```
 
-* Android
+If you need a shared library, then after `make clean`,
+
+```
+make android BLS_LIB_SHARED=1
+```
+
+# Android
 ```
 make android
 ```
