@@ -25,18 +25,19 @@ clang is necessary to build ll files.
 make CXX=clang++
 ```
 
+# Android
+```
+make android
+```
+
 If you need a shared library, then after `make clean`,
 
 ```
 make android BLS_LIB_SHARED=1
 ```
 
-# Android
-```
-make android
-```
-
-* iOS
+# iOS
 ```
 make ios
 ```
+
