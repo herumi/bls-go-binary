@@ -1,5 +1,5 @@
---- src//bls/ffi/go/bls/bls.go	2022-07-14 17:21:58.234574487 +0900
-+++ bls/bls.go	2022-08-31 10:17:02.527433304 +0900
+--- src//bls/ffi/go/bls/bls.go	2023-01-23 17:12:37.702058891 +0900
++++ bls/bls.go	2023-01-25 03:40:56.213759397 +0900
 @@ -1,16 +1,10 @@
  package bls
  
@@ -11,7 +11,7 @@
 -#cgo bn384_256 CFLAGS:-DMCLBN_FP_UNIT_SIZE=6 -DMCLBN_FR_UNIT_SIZE=4
 -#cgo bn384_256 LDFLAGS:-lbls384_256
 -
--#cgo LDFLAGS:-lcrypto -lgmp -lgmpxx -lstdc++
+-#cgo LDFLAGS:-lstdc++
 +#cgo CFLAGS:-I${SRCDIR}./include
  typedef unsigned int (*ReadRandFunc)(void *, void *, unsigned int);
  int wrapReadRandCgo(void *self, void *buf, unsigned int n);
