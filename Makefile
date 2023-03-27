@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 SRC_DIR?=src
 BLS_DIR=$(SRC_DIR)/bls
 MCL_DIR=$(BLS_DIR)/mcl
@@ -129,6 +130,22 @@ each_ios: $(BASE_LL)
 	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c $(BLS_DIR)/src/bls_c$(CURVE_BIT).cpp -o $(IOS_OUTDIR)/bls_c$(CURVE_BIT).o
 	ar cru $(IOS_OUTDIR)/$(IOS_LIB) $(IOS_OUTDIR)/fp.o $(IOS_OUTDIR)/base$(BIT).o $(IOS_OUTDIR)/bls_c$(CURVE_BIT).o
 	ranlib $(IOS_OUTDIR)/$(IOS_LIB)
+=======
+-include ETH.cfg
+SRC_DIR?=src/
+BLS_DIR?=$(SRC_DIR)/bls
+MCL_DIR?=$(BLS_DIR)/mcl
+all:
+	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) all
+ios:
+	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) ios
+ios_simulator:
+	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) ios_simulator
+
+NDK_BUILD?=ndk-build
+android:
+	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) NDK_BUILD=$(NDK_BUILD) BLS_LIB_SHARED=$(BLS_LIB_SHARED) android
+>>>>>>> 6902be28593e49efe88401c9c12048bb4251a439
 
 update:
 	cp $(BLS_DIR)/include/bls/bls.h bls/include/bls/.

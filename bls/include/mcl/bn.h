@@ -21,17 +21,17 @@
 #include <stdlib.h> // for size_t
 
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 	#ifdef MCLBN_DONT_EXPORT
 		#define MCLBN_DLL_API
 	#else
 		#ifdef MCLBN_DLL_EXPORT
 			#define MCLBN_DLL_API __declspec(dllexport)
 		#else
-			#define MCLBN_DLL_API __declspec(dllimport)
+			#define MCLBN_DLL_API //__declspec(dllimport)
 		#endif
 	#endif
-	#ifndef MCLBN_NO_AUTOLINK
+	#if defined(_MSC_VER) && !defined(MCLBN_NO_AUTOLINK)
 		#if MCLBN_FP_UNIT_SIZE == 4
 			#pragma comment(lib, "mclbn256.lib")
 		#elif (MCLBN_FP_UNIT_SIZE == 6) && (MCLBN_FR_UNIT_SIZE == 4)
@@ -166,9 +166,15 @@ MCLBN_DLL_API int mclBn_getCurveType(void);
 MCLBN_DLL_API int mclBn_getOpUnitSize(void);
 
 /*
-	return bytes for serialized G1(=Fp)
+	return bytes for serialized G1(=size of Fp) + adj
+	adj = 1 if p is full bit else 0
 */
 MCLBN_DLL_API int mclBn_getG1ByteSize(void);
+/*
+	return bytes for serialized G2(=size of Fp2) + adj
+	adj = 1 if p is full bit else 0
+*/
+MCLBN_DLL_API int mclBn_getG2ByteSize(void);
 /*
 	return bytes for serialized Fr
 */
@@ -295,6 +301,10 @@ MCLBN_DLL_API int mclBnFr_isOne(const mclBnFr *x);
 MCLBN_DLL_API int mclBnFr_isOdd(const mclBnFr *x);
 // return 1 if half <= x < r, where half = (r + 1) / 2 else 0
 MCLBN_DLL_API int mclBnFr_isNegative(const mclBnFr *x);
+// compare x and y as unsigned
+// return x < y ? -1 : x == y ? 0 : 1;
+// @note two Montgomery conversions may be required
+MCLBN_DLL_API int mclBnFr_cmp(const mclBnFr *x, const mclBnFr *y);
 
 MCLBN_DLL_API int mclBnFp_isValid(const mclBnFp *x);
 MCLBN_DLL_API int mclBnFp_isEqual(const mclBnFp *x, const mclBnFp *y);
@@ -303,6 +313,10 @@ MCLBN_DLL_API int mclBnFp_isOne(const mclBnFp *x);
 MCLBN_DLL_API int mclBnFp_isOdd(const mclBnFp *x);
 // return 1 if half <= x < p, where half = (p + 1) / 2 else 0
 MCLBN_DLL_API int mclBnFp_isNegative(const mclBnFp *x);
+// compare x and y as unsigned
+// return x < y ? -1 : x == y ? 0 : 1;
+// @note two Montgomery conversions may be required
+MCLBN_DLL_API int mclBnFp_cmp(const mclBnFp *x, const mclBnFp *y);
 
 MCLBN_DLL_API int mclBnFp2_isEqual(const mclBnFp2 *x, const mclBnFp2 *y);
 MCLBN_DLL_API int mclBnFp2_isZero(const mclBnFp2 *x);
@@ -458,8 +472,9 @@ MCLBN_DLL_API void mclBnGT_powGeneric(mclBnGT *z, const mclBnGT *x, const mclBnF
 MCLBN_DLL_API void mclBnGT_pow(mclBnGT *z, const mclBnGT *x, const mclBnFr *y);
 
 // z = sum_{i=0}^{n-1} x[i] y[i]
-MCLBN_DLL_API void mclBnG1_mulVec(mclBnG1 *z, const mclBnG1 *x, const mclBnFr *y, mclSize n);
-MCLBN_DLL_API void mclBnG2_mulVec(mclBnG2 *z, const mclBnG2 *x, const mclBnFr *y, mclSize n);
+// x[] may be normalized (the values are not changed) when computing z
+MCLBN_DLL_API void mclBnG1_mulVec(mclBnG1 *z, mclBnG1 *x, const mclBnFr *y, mclSize n);
+MCLBN_DLL_API void mclBnG2_mulVec(mclBnG2 *z, mclBnG2 *x, const mclBnFr *y, mclSize n);
 MCLBN_DLL_API void mclBnGT_powVec(mclBnGT *z, const mclBnGT *x, const mclBnFr *y, mclSize n);
 
 MCLBN_DLL_API void mclBn_pairing(mclBnGT *z, const mclBnG1 *x, const mclBnG2 *y);
@@ -467,6 +482,15 @@ MCLBN_DLL_API void mclBn_finalExp(mclBnGT *y, const mclBnGT *x);
 MCLBN_DLL_API void mclBn_millerLoop(mclBnGT *z, const mclBnG1 *x, const mclBnG2 *y);
 // z = prod_{i=0}^{n-1} millerLoop(x[i], y[i])
 MCLBN_DLL_API void mclBn_millerLoopVec(mclBnGT *z, const mclBnG1 *x, const mclBnG2 *y, mclSize n);
+<<<<<<< HEAD
+=======
+// multi thread version of millerLoopVec/mclBnG1_mulVec/mclBnG2_mulVec (enabled if the library built with MCL_USE_OMP=1)
+// the num of thread is automatically detected if cpuN = 0
+// x[] may be normalized (the values are not changed) when computing z
+MCLBN_DLL_API void mclBn_millerLoopVecMT(mclBnGT *z, const mclBnG1 *x, const mclBnG2 *y, mclSize n, mclSize cpuN);
+MCLBN_DLL_API void mclBnG1_mulVecMT(mclBnG1 *z, mclBnG1 *x, const mclBnFr *y, mclSize n, mclSize cpuN);
+MCLBN_DLL_API void mclBnG2_mulVecMT(mclBnG2 *z, mclBnG2 *x, const mclBnFr *y, mclSize n, mclSize cpuN);
+>>>>>>> 6902be28593e49efe88401c9c12048bb4251a439
 
 // return precomputedQcoeffSize * sizeof(Fp6) / sizeof(uint64_t)
 MCLBN_DLL_API int mclBn_getUint64NumToPrecompute(void);
