@@ -69,7 +69,9 @@ jobs:
           gcc --version
           python3 --version
           make clean
+          # make -j # ar gives an error for some reason, so use the followings:
           make -C src/bls -f Makefile.onelib OUT_DIR=./ -j
+          cp src/bls/bls/lib/windows/amd64/libbls384_256.a bls/lib/windows/amd64/
 
           git config user.name github-actions
           git config user.email github-actions@github.com
