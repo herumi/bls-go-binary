@@ -20,7 +20,12 @@ cd bls-go-binary
 ```
 
 ## Linux, Mac, Windows(mingw64)
-clang is necessary to build ll files.
+On x64 Linux,
+```
+make
+```
+
+Otherwise, clang is necessary to build ll files.
 ```
 make CXX=clang++
 ```
