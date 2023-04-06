@@ -37,9 +37,52 @@ jobs:
           git config user.email github-actions@github.com
           git push --set-upstream origin "$BRANCH_NAME"
 
+  build-windows:
+    runs-on: windows-latest
+    needs: create-branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.20
+
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          install: base-devel git gcc make python3 # mingw-w64-x86_64-clang
+
+      - name: Checkout branch
+        shell: msys2 {0}
+        run: |
+          git pull && git checkout "$BRANCH_NAME" && git pull
+          git submodule update --init --recursive
+
+      - name: Build windows
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        run: |
+          gcc --version
+          python3 --version
+          make clean
+          # make -j # ar gives an error for some reason, so use the followings:
+          make -C src/bls -f Makefile.onelib OUT_DIR=./
+          cp src/bls/bls/lib/windows/amd64/libbls384_256.a bls/lib/windows/amd64/
+
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ./bls/lib/windows -f
+          git commit -m "fix(release): added libs for windows"
+          git push
+
+
   build-linux:
     runs-on: ubuntu-latest
-    needs: create-branch
+    needs: build-windows
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -151,48 +194,6 @@ jobs:
 
           git commit -m "fix(release): added libs for ios/ios simulator"
           git push
-
-  # build-windows:
-  #   runs-on: windows-latest
-  #   needs: create-branch
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
-
-  #     - name: Setup Go
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ^1.20
-
-  #     - name: Install LLVM
-  #       uses: crazy-max/ghaction-chocolatey@v2
-  #       with:
-  #         args: install llvm --version=15.0.7
-
-  #     - name: Install MSYS2
-  #       uses: crazy-max/ghaction-chocolatey@v2
-  #       with:
-  #         args: install msys2
-
-  #     - name: Checkout branch
-  #       run: |
-  #         git pull && git checkout "$BRANCH_NAME" && git pull
-  #         git submodule update --init --recursive
-
-  #     - name: Build windows
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-  #       run: |
-  #         gcc --version
-  #         clang++ -v
-  #         make clean
-  #         make CXX=clang++ -j
-
-  #         git config user.name github-actions
-  #         git config user.email github-actions@github.com
-  #         git add ./bls/lib/windows -f
-  #         git commit -m "fix(release): added libs for windows"
-  #         git push
 
   create-release:
     runs-on: ubuntu-latest
