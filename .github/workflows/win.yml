@@ -69,7 +69,8 @@ jobs:
           gcc --version
           python3 --version
           make clean
-          make -j
+#          make -j
+          make -C src/bls -f Makefile.onelib OUT_DIR=./ -j
 
           git config user.name github-actions
           git config user.email github-actions@github.com
