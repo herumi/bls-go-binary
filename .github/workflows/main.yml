@@ -10,6 +10,7 @@ jobs:
         os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
+    - run: make
     - run: go test -v ./bls
     - run: git submodule update --init --recursive
     - name: build on linux
