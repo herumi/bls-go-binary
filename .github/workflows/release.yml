@@ -202,31 +202,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ^1.20
-
-      - name: Checkout branch
+      - name: Set hash
+        id: set-hash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         run: |
           git pull && git checkout "$BRANCH_NAME" && git pull
           git submodule update --init --recursive
+          git branch -av
+          git rev-parse HEAD
+          echo "hash=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: show
+        run: |
+         echo "hash" "${{ env.hash }}"
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        run: gh release create "release-${{ github.event.inputs.version }}" -t "${{ github.event.inputs.version }}" --target "${{ env.hash }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: ${{ github.event.inputs.version }}
-          # body: |
-          #   Changes in this Release
-          #   - First Change
-          #   - Second Change
-          draft: false
-          prerelease: false
+          GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   delete-branch:
     runs-on: ubuntu-latest
@@ -239,5 +234,5 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git pull && git push origin -d "$BRANCH_NAME"
+          git pull && git push origin -d refs/origin/"$BRANCH_NAME"
 
