@@ -31,6 +31,13 @@ Otherwise, clang is necessary to build ll files.
 make CXX=clang++
 ```
 
+### Cross compile on macOS
+
+```
+make ARCH=x86_64 # for Intel mac
+make ARCH=arm64  # for M1 mac
+```
+
 # Android
 ```
 make android
