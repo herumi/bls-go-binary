@@ -1,9 +1,10 @@
 -include ETH.cfg
+ARCH?=$(shell uname -m)
 SRC_DIR?=src/
 BLS_DIR?=$(SRC_DIR)/bls
 MCL_DIR?=$(BLS_DIR)/mcl
 all:
-	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) all
+	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ARCH=$(ARCH) ETH_CFLAGS=$(ETH_CFLAGS) all
 ios:
 	$(MAKE) -f $(BLS_DIR)/Makefile.onelib BLS_DIR=$(BLS_DIR) MCL_DIR=$(MCL_DIR) OUT_DIR=$(shell pwd) ETH_CFLAGS=$(ETH_CFLAGS) ios
 ios_simulator:
