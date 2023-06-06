@@ -146,7 +146,9 @@ jobs:
 
           mkdir -p ./bls/lib/darwin/
 
-          make
+          make ARCH=x86_64
+          make clean
+          make ARCH=arm64
 
           git config user.name github-actions
           git config user.email github-actions@github.com
