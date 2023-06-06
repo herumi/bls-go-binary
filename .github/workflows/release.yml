@@ -74,7 +74,7 @@ jobs:
         run: |
           git pull && git checkout release
           git submodule update --init --recursive
-          
+
           sudo apt install nasm
 
           [ -d ./bls/lib/linux/ ] && rm -rf ./bls/lib/linux/
@@ -87,12 +87,12 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          git add ./bls/lib/linux -f 
+          git add ./bls/lib/linux -f
 
           changes=$(git diff --staged --numstat | wc -l)
           if [[ $changes -gt 0 ]]
           then
-            git commit -m "fix(release): added libs for linux" 
+            git commit -m "fix(release): added libs for linux"
             git push
           fi
 
@@ -112,12 +112,12 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          git add ./bls/lib/android/ -f 
- 
+          git add ./bls/lib/android/ -f
+
           changes=$(git diff --staged --numstat | wc -l)
           if [[ $changes -gt 0 ]]
           then
-            git commit -m "fix(release): added libs for android" 
+            git commit -m "fix(release): added libs for android"
             git push
           fi
   build-macos:
@@ -150,8 +150,8 @@ jobs:
 
           git config user.name github-actions
           git config user.email github-actions@github.com
-          
-          git add ./bls/lib/darwin/ -f 
+
+          git add ./bls/lib/darwin/ -f
 
           changes=$(git diff --staged --numstat | wc -l)
           if [[ $changes -gt 0 ]]
@@ -181,7 +181,7 @@ jobs:
           make ios_simulator
 
           git add ./bls/lib/ios -f
-          git add ./bls/lib/iossimulator -f 
+          git add ./bls/lib/iossimulator -f
 
           changes=$(git diff --staged --numstat | wc -l)
           if [[ $changes -gt 0 ]]
