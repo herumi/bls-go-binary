@@ -25,8 +25,7 @@ COPY .  .
 RUN make clean
 RUN mkdir -p ./bls/lib/linux/
 
-RUN make CXX=clang++ ARCH=x86_64
-RUN make CXX=clang++ ARCH=amd64
+RUN make CXX=clang++
 
 FROM scratch AS bls-go-binary-export
 COPY --from=bls-go-binary-build /usr/local/bls-go-binary/bls/lib/linux/ /bls/lib/linux/
