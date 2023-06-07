@@ -31,4 +31,8 @@ clean:
 	$(MAKE) -C $(BLS_DIR) clean
 	$(RM) -rf obj/*.o android/obj/* bls/lib/android/*
 
-.PHONY: android ios each_ios clean
+build_linux_arm64:
+	docker buildx build --platform linux/arm64 --progress=plain -f ./dockerfile . -t bls-go-binary -o "type=local,dest=."
+
+.PHONY: android ios each_ios clean build_linux
+
