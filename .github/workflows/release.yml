@@ -31,6 +31,7 @@ jobs:
         run: |
           git pull
           git checkout release 2>/dev/null || git checkout -b release
+          rm -rf ./src/bls && mkdir -p ./src/bls
           git merge origin/master -q -m "chore(git): merged latest master"
           git submodule update --init --recursive
 
