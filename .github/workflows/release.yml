@@ -75,6 +75,7 @@ jobs:
           git pull && git checkout release
           git submodule update --init --recursive
 
+          sudo apt update
           sudo apt install nasm
 
           [ -d ./bls/lib/linux/ ] && rm -rf ./bls/lib/linux/
@@ -83,6 +84,10 @@ jobs:
           mkdir -p ./bls/lib/linux/
 
           make CXX=clang++
+          make clean
+          # build linux/arm64
+          sudo apt-get install gcc-multilib
+          make -C src/bls -f Makefile.onelib build_aarch64 CXX=clang++ -j OUT_DIR=../..
 
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -92,7 +97,7 @@ jobs:
           changes=$(git diff --staged --numstat | wc -l)
           if [[ $changes -gt 0 ]]
           then
-            git commit -m "fix(release): added libs for linux"
+            git commit -m "fix(release): added libs for linux(amd64/arm64)"
             git push
           fi
 
