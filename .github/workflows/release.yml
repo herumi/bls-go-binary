@@ -88,7 +88,7 @@ jobs:
           make clean
           # build linux/arm64
           sudo apt-get install gcc-multilib
-          make -C src/bls -f Makefile.onelib build_aarch64 CXX=clang++ -j OUT_DIR=../..
+          make aarch64
 
           git config user.name github-actions
           git config user.email github-actions@github.com
