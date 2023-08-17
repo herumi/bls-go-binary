@@ -11,6 +11,9 @@ If you want the binary compatible with eth2-spec, then see [bls-eth-go-binary](h
 * PublicKey; G2
 * Signature; G1
 
+# News
+- 2023/Aug/17 The performance of Sign is a little improved.
+
 # How to build the static binary
 The following steps are not necessary if you use compiled binary in this repository.
 
@@ -61,3 +64,17 @@ make android BLS_LIB_SHARED=1
 make ios
 ```
 
+# how to release (internal notification)
+```
+git checkout -b release
+git reset --hard origin/release
+git merge origin/master
+git push origin release
+```
+
+# Author
+
+MITSUNARI Shigeo(herumi@nifty.com)
+
+# Sponsors welcome
+[GitHub Sponsor](https://github.com/sponsors/herumi)
