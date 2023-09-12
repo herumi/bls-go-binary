@@ -19,7 +19,7 @@ on:
 
 jobs:
   create-branch:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner
 
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
           git config user.email github-actions@github.com
           git push --set-upstream origin release
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner
     needs: create-branch
     steps:
       - name: Checkout code
@@ -127,7 +127,7 @@ jobs:
             git push
           fi
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-runner
     needs: build-linux
     steps:
       - name: Checkout code
@@ -199,7 +199,7 @@ jobs:
           fi
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-runner
     needs: build-macos
     steps:
       - name: Checkout code
@@ -246,7 +246,7 @@ jobs:
 
 
   create-release:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner
     needs: build-windows
     steps:
       - name: Checkout code
