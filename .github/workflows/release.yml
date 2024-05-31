@@ -80,6 +80,8 @@ jobs:
 
           sudo apt update
           sudo apt install nasm
+          gcc -v
+          clang++ -v
 
           [ -d ./bls/lib/linux/ ] && rm -rf ./bls/lib/linux/
           make clean
