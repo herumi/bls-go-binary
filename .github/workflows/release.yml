@@ -41,7 +41,7 @@ jobs:
   build-linux:
     # For Linux build we use an Ubuntu version that's as old as possible so that
     # the generated artifacts are compatible with not-so-recent systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: create-branch
     steps:
       - name: Checkout code
