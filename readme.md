@@ -14,13 +14,30 @@ If you want the binary compatible with eth2-spec, then see [bls-eth-go-binary](h
 # News
 - 2023/Aug/17 The performance of Sign is a little improved.
 
-# How to build the static binary
-The following steps are not necessary if you use compiled binary in this repository.
+# How to run `examples/sample.go`
 
 ```
-git clone --recursive https://github.com/herumi/bls-go-binary
+git clone -b release https://github.com/herumi/bls-go-binary
 cd bls-go-binary
-#git submodule update --init --recursive
+go run examples/agg-verify.go
+```
+
+# How to use `setup_vendor.sh`
+Since this package includes C headers and libraries,
+when using `go build -mod=vendor`, please run:
+
+```bash
+$GOMODCACHE/github.com/herumi/bls-go-binary@<version>/setup_vendor.sh
+```
+
+# How to build the static binary
+The following steps are not necessary if you use release branch.
+
+```
+git clone https://github.com/herumi/bls-go-binary
+cd bls-go-binary
+git submodule update --init --recursive
+go test ./bls
 ```
 
 ## Linux, Mac, Windows(mingw64)
