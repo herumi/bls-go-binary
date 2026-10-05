@@ -47,12 +47,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: ^1.20
-          cache: false
-
       - name: Install Java
         uses: actions/setup-java@v6
         with:
@@ -137,12 +131,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: ^1.20
-          cache: false
-
       - name: Build darwin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
@@ -209,12 +197,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: ^1.20
-          cache: false
 
       - name: Install MSYS2
         uses: msys2/setup-msys2@v2
