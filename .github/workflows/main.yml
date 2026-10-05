@@ -6,7 +6,7 @@ jobs:
     name: Run on ubuntu
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - run: |
         git submodule update --init --recursive
         sudo apt install nasm
@@ -16,12 +16,13 @@ jobs:
 
   Run-on-Intel-macos:
     name: Run on Intel macos
-    runs-on: macos-15
+    runs-on: macos-15-intel
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions/checkout@v7
+    - uses: actions/setup-go@v7
       with:
         go-version: '1.18.x'
+        cache: false
     - run: |
         git submodule update --init --recursive
         brew install nasm
@@ -31,13 +32,14 @@ jobs:
 
   Run-on-ARM-macos:
     name: Run on macos
-    # Intel Mac
+    # Apple silicon
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions/checkout@v7
+    - uses: actions/setup-go@v7
       with:
         go-version: '1.18.x'
+        cache: false
     - run: |
         git submodule update --init --recursive
         make clean
@@ -49,7 +51,7 @@ jobs:
 #    name: Run on windows
 #    runs-on: windows-latest
 #    steps:
-#    - uses: actions/checkout@v4
+#    - uses: actions/checkout@v7
 #    - uses: msys2/setup-msys2@v2
 #      with:
 #        msystem: MINGW64
